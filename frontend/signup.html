@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Create Account - JeffAI</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="/config.js"></script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.08);
+}
+
+.logo {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.logo span {
+    color: #4f46e5;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    border: 0;
+    border-radius: 10px;
+    background: #4f46e5;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#message {
+    text-align: center;
+    margin-top: 15px;
+    line-height: 1.5;
+}
+
+.link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+a {
+    color: #4f46e5;
+    text-decoration: none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">
+Jeff<span>AI</span>
+</div>
+
+<h1>Create your account</h1>
+
+<form id="signupForm">
+
+<input
+    id="email"
+    type="email"
+    placeholder="Email address"
+    required
+>
+
+<input
+    id="password"
+    type="password"
+    placeholder="Password"
+    minlength="6"
+    placeholder="Password"
+    required
+>
+
+<button type="submit">
+Create Account
+</button>
+
+</form>
+
+<div id="message"></div>
+
+<div class="link">
+
+Already have an account?
+
+<a href="/login.html">
+Login
+</a>
+
+</div>
+
+</div>
+
+<script>
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+
+document
+.getElementById("signupForm")
+.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    const message =
+        document.getElementById("message");
+
+    message.textContent = "Creating account...";
+    message.style.color = "#111827";
+
+    const { data, error } =
+        await supabaseClient.auth.signUp({
+            email,
+            password
+        });
+
+    if (error) {
+
+        message.textContent = error.message;
+        message.style.color = "red";
+
+        return;
+    }
+
+    if (!data.session) {
+
+        message.textContent =
+            "Account created! Check your email to confirm your account.";
+
+        message.style.color = "green";
+
+        return;
+    }
+
+    window.location.href = "/";
+
+});
+
+</script>
+
+</body>
+
+</html>
