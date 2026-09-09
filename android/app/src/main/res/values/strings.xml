@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">JeffAI</string>
+    <string name="title_activity_main">JeffAI</string>
+    <string name="package_name">com.jeffai.app</string>
+    <string name="custom_url_scheme">com.jeffai.app</string>
+</resources>

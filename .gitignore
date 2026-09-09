@@ -4,3 +4,7 @@ __pycache__/
 .env
 .vscode/
 .idea/
+node_modules/
+android/.gradle/
+android/build/
+android/app/build/
