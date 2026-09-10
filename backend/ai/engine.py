@@ -2,19 +2,31 @@ import os
 
 from dotenv import load_dotenv
 from groq import Groq
+from openai import OpenAI
 
 
 load_dotenv()
 
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
 
 if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY is missing from .env")
 
+if not OPENROUTER_API_KEY:
+    raise RuntimeError("OPENROUTER_API_KEY is missing from .env")
 
-client = Groq(
+
+groq_client = Groq(
     api_key=GROQ_API_KEY
+)
+
+
+openrouter_client = OpenAI(
+    api_key=OPENROUTER_API_KEY,
+    base_url="https://openrouter.ai/api/v1"
 )
 
 
@@ -22,20 +34,21 @@ class JeffAI:
 
     def __init__(self):
         self.name = "Jeff AI"
-        self.model = "openai/gpt-oss-120b"
-    def respond(self, message):
 
-        message = message.strip()
+        self.providers = [
+            {
+                "name": "Groq",
+                "client": groq_client,
+                "model": "openai/gpt-oss-120b"
+            },
+            {
+                "name": "OpenRouter",
+                "client": openrouter_client,
+                "model": "openai/gpt-oss-120b"
+            }
+        ]
 
-        if not message:
-            return "Please enter a message."
-
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": """
+        self.system_prompt = """
 You are Jeff AI, a personal AI assistant created by Jeff Bhexus.
 
 IDENTITY:
@@ -70,17 +83,58 @@ IMPORTANT:
 - If you do not know something, say so honestly.
 - Follow the user's instructions carefully.
 """
-                },
-                {
-                    "role": "user",
-                    "content": message
-                }
-            ],
-            temperature=0.7,
-            max_tokens=2048
-        )
 
-        return response.choices[0].message.content
+    def respond(self, message):
+
+        message = message.strip()
+
+        if not message:
+            return "Please enter a message."
+
+        last_error = None
+
+        for provider in self.providers:
+
+            try:
+
+                print(f"JeffAI trying {provider['name']}...")
+
+                response = provider["client"].chat.completions.create(
+                    model=provider["model"],
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": self.system_prompt
+                        },
+                        {
+                            "role": "user",
+                            "content": message
+                        }
+                    ],
+                    temperature=0.7,
+                    max_tokens=2048
+                )
+
+                print(f"JeffAI response from {provider['name']}")
+
+                return response.choices[0].message.content
+
+            except Exception as error:
+
+                last_error = error
+
+                print(
+                    f"{provider['name']} failed: {error}"
+                )
+
+                print(
+                    f"Trying next provider..."
+                )
+
+        return (
+            "I'm temporarily unable to respond because "
+            "all of my AI providers are unavailable."
+        )
 
 
 jeffai = JeffAI()
