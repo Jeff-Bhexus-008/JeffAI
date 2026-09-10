@@ -7,3 +7,4 @@ supabase
 gunicorn
 pypdf
 python-docx
+reportlab

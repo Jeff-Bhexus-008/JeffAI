@@ -1,11 +1,22 @@
 import os
 import io
+import textwrap
+
 import requests
 
-from flask import Blueprint, request, jsonify
+from flask import (
+    Blueprint,
+    request,
+    jsonify,
+    send_file
+)
 
 from pypdf import PdfReader
 from docx import Document
+
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.pdfgen import canvas
 
 from backend.ai.engine import jeffai
 
@@ -15,6 +26,7 @@ chat_bp = Blueprint("chat", __name__)
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
 
 # ==========================================
@@ -49,12 +61,10 @@ def get_user():
 
         response = requests.get(
             f"{SUPABASE_URL}/auth/v1/user",
-
             headers={
                 "apikey": SUPABASE_KEY,
                 "Authorization": f"Bearer {token}"
             },
-
             timeout=15
         )
 
@@ -91,6 +101,7 @@ def conversations():
     user = get_user()
 
     if not user:
+
         return jsonify({
             "success": False,
             "error": "You must be logged in."
@@ -101,17 +112,13 @@ def conversations():
     try:
 
         response = requests.get(
-
             f"{SUPABASE_URL}/rest/v1/conversations",
-
             headers=supabase_headers(token),
-
             params={
                 "user_id": f"eq.{user['id']}",
                 "select": "*",
                 "order": "updated_at.desc"
             },
-
             timeout=15
         )
 
@@ -144,6 +151,7 @@ def create_conversation():
     user = get_user()
 
     if not user:
+
         return jsonify({
             "success": False,
             "error": "You must be logged in."
@@ -166,16 +174,12 @@ def create_conversation():
     try:
 
         response = requests.post(
-
             f"{SUPABASE_URL}/rest/v1/conversations",
-
             headers=supabase_headers(token),
-
             json={
                 "user_id": user["id"],
                 "title": title
             },
-
             timeout=15
         )
 
@@ -208,6 +212,7 @@ def get_messages(conversation_id):
     user = get_user()
 
     if not user:
+
         return jsonify({
             "success": False,
             "error": "You must be logged in."
@@ -218,18 +223,18 @@ def get_messages(conversation_id):
     try:
 
         response = requests.get(
-
             f"{SUPABASE_URL}/rest/v1/messages",
-
             headers=supabase_headers(token),
-
             params={
-                "conversation_id": f"eq.{conversation_id}",
-                "user_id": f"eq.{user['id']}",
-                "select": "*",
-                "order": "created_at.asc"
+                "conversation_id":
+                    f"eq.{conversation_id}",
+                "user_id":
+                    f"eq.{user['id']}",
+                "select":
+                    "*",
+                "order":
+                    "created_at.asc"
             },
-
             timeout=15
         )
 
@@ -253,6 +258,103 @@ def get_messages(conversation_id):
         }), 500
 
 
+# ==========================================
+# RENAME CONVERSATION
+# ==========================================
+
+@chat_bp.route(
+    "/api/conversations/<conversation_id>",
+    methods=["PATCH"]
+)
+def rename_conversation(conversation_id):
+
+    user = get_user()
+
+    if not user:
+
+        return jsonify({
+            "success": False,
+            "error": "You must be logged in."
+        }), 401
+
+    token = get_token()
+
+    data = request.get_json(
+        silent=True
+    ) or {}
+
+    title = data.get(
+        "title",
+        ""
+    ).strip()
+
+    if not title:
+
+        return jsonify({
+            "success": False,
+            "error": "Conversation name cannot be empty."
+        }), 400
+
+    if len(title) > 100:
+
+        return jsonify({
+            "success": False,
+            "error":
+                "Conversation name cannot exceed 100 characters."
+        }), 400
+
+    try:
+
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/conversations",
+            headers=supabase_headers(token),
+            params={
+                "id":
+                    f"eq.{conversation_id}",
+                "user_id":
+                    f"eq.{user['id']}"
+            },
+            json={
+                "title": title
+            },
+            timeout=15
+        )
+
+        if response.status_code >= 400:
+
+            print(
+                "Rename conversation error:",
+                response.text
+            )
+
+            return jsonify({
+                "success": False,
+                "error":
+                    "Failed to rename conversation."
+            }), response.status_code
+
+        return jsonify({
+            "success": True,
+            "title": title
+        })
+
+    except Exception as error:
+
+        print(
+            "Rename conversation exception:",
+            error
+        )
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 500
+
+
+# ==========================================
+# DELETE CONVERSATION
+# ==========================================
+
 @chat_bp.route(
     "/api/conversations/<conversation_id>",
     methods=["DELETE"]
@@ -262,6 +364,7 @@ def delete_conversation(conversation_id):
     user = get_user()
 
     if not user:
+
         return jsonify({
             "success": False,
             "error": "You must be logged in."
@@ -272,16 +375,14 @@ def delete_conversation(conversation_id):
     try:
 
         response = requests.delete(
-
             f"{SUPABASE_URL}/rest/v1/conversations",
-
             headers=supabase_headers(token),
-
             params={
-                "id": f"eq.{conversation_id}",
-                "user_id": f"eq.{user['id']}"
+                "id":
+                    f"eq.{conversation_id}",
+                "user_id":
+                    f"eq.{user['id']}"
             },
-
             timeout=15
         )
 
@@ -317,6 +418,7 @@ def get_memories():
     user = get_user()
 
     if not user:
+
         return jsonify({
             "success": False,
             "error": "You must be logged in."
@@ -327,17 +429,16 @@ def get_memories():
     try:
 
         response = requests.get(
-
             f"{SUPABASE_URL}/rest/v1/memories",
-
             headers=supabase_headers(token),
-
             params={
-                "user_id": f"eq.{user['id']}",
-                "select": "*",
-                "order": "created_at.desc"
+                "user_id":
+                    f"eq.{user['id']}",
+                "select":
+                    "*",
+                "order":
+                    "created_at.desc"
             },
-
             timeout=15
         )
 
@@ -370,6 +471,7 @@ def create_memory():
     user = get_user()
 
     if not user:
+
         return jsonify({
             "success": False,
             "error": "You must be logged in."
@@ -387,6 +489,7 @@ def create_memory():
     ).strip()
 
     if not memory:
+
         return jsonify({
             "success": False,
             "error": "Memory cannot be empty."
@@ -395,16 +498,14 @@ def create_memory():
     try:
 
         response = requests.post(
-
             f"{SUPABASE_URL}/rest/v1/memories",
-
             headers=supabase_headers(token),
-
             json={
-                "user_id": user["id"],
-                "memory": memory
+                "user_id":
+                    user["id"],
+                "memory":
+                    memory
             },
-
             timeout=15
         )
 
@@ -437,6 +538,7 @@ def delete_memory(memory_id):
     user = get_user()
 
     if not user:
+
         return jsonify({
             "success": False,
             "error": "You must be logged in."
@@ -447,16 +549,14 @@ def delete_memory(memory_id):
     try:
 
         response = requests.delete(
-
             f"{SUPABASE_URL}/rest/v1/memories",
-
             headers=supabase_headers(token),
-
             params={
-                "id": f"eq.{memory_id}",
-                "user_id": f"eq.{user['id']}"
+                "id":
+                    f"eq.{memory_id}",
+                "user_id":
+                    f"eq.{user['id']}"
             },
-
             timeout=15
         )
 
@@ -494,7 +594,10 @@ def extract_text(
         .split(".")[-1]
     )
 
+    # ==========================================
     # TXT
+    # ==========================================
+
     if extension == "txt":
 
         return file_bytes.decode(
@@ -502,7 +605,10 @@ def extract_text(
             errors="ignore"
         )
 
+    # ==========================================
     # PDF
+    # ==========================================
+
     if extension == "pdf":
 
         pdf = PdfReader(
@@ -516,11 +622,15 @@ def extract_text(
             text = page.extract_text()
 
             if text:
+
                 pages.append(text)
 
         return "\n\n".join(pages)
 
+    # ==========================================
     # DOCX
+    # ==========================================
+
     if extension == "docx":
 
         document = Document(
@@ -586,7 +696,8 @@ def upload_document():
     }
 
     extension = (
-        filename.lower()
+        filename
+        .lower()
         .split(".")[-1]
     )
 
@@ -594,19 +705,24 @@ def upload_document():
 
         return jsonify({
             "success": False,
-            "error": "Only PDF, DOCX and TXT files are supported."
+            "error":
+                "Only PDF, DOCX and TXT files are supported."
         }), 400
 
     try:
 
         file_bytes = file.read()
 
-        # 10 MB limit
+        # ==========================================
+        # 10 MB LIMIT
+        # ==========================================
+
         if len(file_bytes) > 10 * 1024 * 1024:
 
             return jsonify({
                 "success": False,
-                "error": "File is too large. Maximum size is 10 MB."
+                "error":
+                    "File is too large. Maximum size is 10 MB."
             }), 400
 
         extracted_text = extract_text(
@@ -618,7 +734,8 @@ def upload_document():
 
             return jsonify({
                 "success": False,
-                "error": "No readable text was found in this document."
+                "error":
+                    "No readable text was found in this document."
             }), 400
 
         storage_path = (
@@ -626,21 +743,23 @@ def upload_document():
             f"{filename}"
         )
 
+        # ==========================================
+        # UPLOAD TO SUPABASE STORAGE
+        # ==========================================
+
         storage_response = requests.post(
-
-            f"{SUPABASE_URL}/storage/v1/object/documents/{storage_path}",
-
+            f"{SUPABASE_URL}/storage/v1/object/documents/"
+            f"{storage_path}",
             headers={
-                "apikey": SUPABASE_KEY,
+                "apikey":
+                    SUPABASE_KEY,
                 "Authorization":
                     f"Bearer {token}",
                 "Content-Type":
-                    file.content_type or
-                    "application/octet-stream"
+                    file.content_type
+                    or "application/octet-stream"
             },
-
             data=file_bytes,
-
             timeout=60
         )
 
@@ -653,21 +772,25 @@ def upload_document():
                     + storage_response.text
             }), storage_response.status_code
 
+        # ==========================================
+        # SAVE DOCUMENT RECORD
+        # ==========================================
+
         database_response = requests.post(
-
             f"{SUPABASE_URL}/rest/v1/documents",
-
             headers=supabase_headers(token),
-
             json={
-                "user_id": user["id"],
-                "filename": filename,
-                "file_path": storage_path,
-                "file_type": extension,
+                "user_id":
+                    user["id"],
+                "filename":
+                    filename,
+                "file_path":
+                    storage_path,
+                "file_type":
+                    extension,
                 "extracted_text":
                     extracted_text[:500000]
             },
-
             timeout=30
         )
 
@@ -675,7 +798,8 @@ def upload_document():
 
             return jsonify({
                 "success": False,
-                "error": database_response.text
+                "error":
+                    database_response.text
             }), database_response.status_code
 
         return jsonify({
@@ -712,19 +836,16 @@ def get_documents():
     try:
 
         response = requests.get(
-
             f"{SUPABASE_URL}/rest/v1/documents",
-
             headers=supabase_headers(token),
-
             params={
-                "user_id": f"eq.{user['id']}",
+                "user_id":
+                    f"eq.{user['id']}",
                 "select":
                     "id,filename,file_type,created_at",
                 "order":
                     "created_at.desc"
             },
-
             timeout=15
         )
 
@@ -745,6 +866,160 @@ def get_documents():
         return jsonify({
             "success": False,
             "error": str(error)
+        }), 500
+
+
+# ==========================================
+# TEXT → PDF
+# ==========================================
+
+@chat_bp.route(
+    "/api/convert/text-to-pdf",
+    methods=["POST"]
+)
+def text_to_pdf():
+
+    user = get_user()
+
+    if not user:
+
+        return jsonify({
+            "success": False,
+            "error": "You must be logged in."
+        }), 401
+
+    try:
+
+        data = request.get_json(
+            silent=True
+        ) or {}
+
+        text = (
+            data.get("text", "")
+            .strip()
+        )
+
+        if not text:
+
+            return jsonify({
+                "success": False,
+                "error":
+                    "Please enter some text first."
+            }), 400
+
+        # ==========================================
+        # CREATE PDF IN MEMORY
+        # ==========================================
+
+        pdf_buffer = io.BytesIO()
+
+        pdf = canvas.Canvas(
+            pdf_buffer,
+            pagesize=A4
+        )
+
+        page_width, page_height = A4
+
+        left_margin = 20 * mm
+        right_margin = 20 * mm
+        top_margin = 20 * mm
+        bottom_margin = 20 * mm
+
+        usable_width = (
+            page_width
+            - left_margin
+            - right_margin
+        )
+
+        font_name = "Helvetica"
+        font_size = 11
+        line_height = 16
+
+        pdf.setFont(
+            font_name,
+            font_size
+        )
+
+        y = (
+            page_height
+            - top_margin
+        )
+
+        # ==========================================
+        # CONVERT TEXT INTO PDF LINES
+        # ==========================================
+
+        for paragraph in text.splitlines():
+
+            if not paragraph.strip():
+
+                y -= line_height
+
+                continue
+
+            # Approximate line length.
+            # This keeps text inside the page.
+            max_chars = 90
+
+            lines = textwrap.wrap(
+                paragraph,
+                width=max_chars,
+                replace_whitespace=False,
+                drop_whitespace=True
+            )
+
+            for line in lines:
+
+                # Create a new page when
+                # the current page is full.
+                if y <= bottom_margin:
+
+                    pdf.showPage()
+
+                    pdf.setFont(
+                        font_name,
+                        font_size
+                    )
+
+                    y = (
+                        page_height
+                        - top_margin
+                    )
+
+                pdf.drawString(
+                    left_margin,
+                    y,
+                    line
+                )
+
+                y -= line_height
+
+        pdf.save()
+
+        pdf_buffer.seek(0)
+
+        # ==========================================
+        # RETURN PDF TO USER
+        # ==========================================
+
+        return send_file(
+            pdf_buffer,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name="JeffAI-Document.pdf"
+        )
+
+    except Exception as error:
+
+        print(
+            "TEXT TO PDF ERROR:",
+            error
+        )
+
+        return jsonify({
+            "success": False,
+            "error":
+                "Unable to create the PDF."
         }), 500
 
 
@@ -798,20 +1073,21 @@ def chat():
 
     try:
 
-        # Create conversation
+        # ==========================================
+        # CREATE CONVERSATION
+        # ==========================================
+
         if not conversation_id:
 
             create_response = requests.post(
-
                 f"{SUPABASE_URL}/rest/v1/conversations",
-
                 headers=supabase_headers(token),
-
                 json={
-                    "user_id": user["id"],
-                    "title": message[:60]
+                    "user_id":
+                        user["id"],
+                    "title":
+                        message[:60]
                 },
-
                 timeout=15
             )
 
@@ -828,27 +1104,23 @@ def chat():
                 .json()[0]["id"]
             )
 
-        # Save user message
+        # ==========================================
+        # SAVE USER MESSAGE
+        # ==========================================
+
         user_message_response = requests.post(
-
             f"{SUPABASE_URL}/rest/v1/messages",
-
             headers=supabase_headers(token),
-
             json={
                 "conversation_id":
                     conversation_id,
-
                 "user_id":
                     user["id"],
-
                 "role":
                     "user",
-
                 "content":
                     message
             },
-
             timeout=15
         )
 
@@ -860,28 +1132,23 @@ def chat():
                     user_message_response.text
             }), user_message_response.status_code
 
+        # ==========================================
+        # GET MEMORIES
+        # ==========================================
 
-        # Get memories
         memories_response = requests.get(
-
             f"{SUPABASE_URL}/rest/v1/memories",
-
             headers=supabase_headers(token),
-
             params={
                 "user_id":
                     f"eq.{user['id']}",
-
                 "select":
                     "memory",
-
                 "order":
                     "created_at.desc",
-
                 "limit":
                     "20"
             },
-
             timeout=15
         )
 
@@ -895,31 +1162,25 @@ def chat():
                 in memories_response.json()
             ]
 
+        # ==========================================
+        # GET RECENT CONVERSATION
+        # ==========================================
 
-        # Get recent conversation
         history_response = requests.get(
-
             f"{SUPABASE_URL}/rest/v1/messages",
-
             headers=supabase_headers(token),
-
             params={
                 "conversation_id":
                     f"eq.{conversation_id}",
-
                 "user_id":
                     f"eq.{user['id']}",
-
                 "select":
                     "role,content",
-
                 "order":
                     "created_at.desc",
-
                 "limit":
                     "20"
             },
-
             timeout=15
         )
 
@@ -933,28 +1194,23 @@ def chat():
                 )
             )
 
+        # ==========================================
+        # GET USER DOCUMENTS
+        # ==========================================
 
-        # Get user's documents
         documents_response = requests.get(
-
             f"{SUPABASE_URL}/rest/v1/documents",
-
             headers=supabase_headers(token),
-
             params={
                 "user_id":
                     f"eq.{user['id']}",
-
                 "select":
                     "filename,extracted_text",
-
                 "order":
                     "created_at.desc",
-
                 "limit":
                     "5"
             },
-
             timeout=15
         )
 
@@ -967,8 +1223,10 @@ def chat():
                 .json()
             )
 
+        # ==========================================
+        # BUILD MEMORY CONTEXT
+        # ==========================================
 
-        # Build context
         memory_context = ""
 
         if memories:
@@ -981,6 +1239,9 @@ def chat():
                 )
             )
 
+        # ==========================================
+        # BUILD DOCUMENT CONTEXT
+        # ==========================================
 
         document_context = ""
 
@@ -995,11 +1256,12 @@ def chat():
                     ""
                 )
 
-                # Keep context manageable
+                # Keep context manageable.
                 text = text[:20000]
 
                 document_parts.append(
-                    f"\nDOCUMENT: {document['filename']}\n"
+                    f"\nDOCUMENT: "
+                    f"{document['filename']}\n"
                     f"{text}"
                 )
 
@@ -1008,6 +1270,9 @@ def chat():
                 + "".join(document_parts)
             )
 
+        # ==========================================
+        # BUILD HISTORY CONTEXT
+        # ==========================================
 
         history_context = ""
 
@@ -1016,11 +1281,15 @@ def chat():
             history_context = (
                 "\n\nRECENT CONVERSATION:\n"
                 + "\n".join(
-                    f"{item['role']}: {item['content']}"
+                    f"{item['role']}: "
+                    f"{item['content']}"
                     for item in history
                 )
             )
 
+        # ==========================================
+        # BUILD AI PROMPT
+        # ==========================================
 
         full_prompt = f"""
 You are JeffAI, a smart, friendly, reliable personal AI assistant.
@@ -1029,6 +1298,7 @@ Your job is to understand what the user actually means and give
 a useful answer to their request.
 
 RESPONSE STYLE:
+
 - Be natural and conversational.
 - Answer the user's actual question directly.
 - Do not simply repeat or paraphrase the user's message.
@@ -1053,60 +1323,119 @@ RESPONSE STYLE:
   API keys, tokens, or other confidential information.
 
 CONVERSATION:
+
 Use the recent conversation to understand what the user is talking
 about. Do not repeat questions the user has already answered.
 
 MEMORY:
+
 Use the user's long-term memory when it is relevant to the current
 request. Do not force unrelated memories into the response.
 
 DOCUMENTS:
+
 Use uploaded documents when the user's question relates to them.
 Do not claim that a document contains something unless the document
 actually provides that information.
 
 LONG-TERM MEMORY:
+
 {memory_context}
 
 RECENT CONVERSATION:
+
 {history_context}
 
 USER DOCUMENTS:
+
 {document_context}
 
 CURRENT USER MESSAGE:
+
 {message}
 
 Now respond naturally and helpfully to the user.
 """
 
+        # ==========================================
+        # GET AI RESPONSE
+        # ==========================================
 
-        ai_response = jeffai.respond(
-            full_prompt
-        )
+        try:
 
+            ai_response = jeffai.respond(
+                full_prompt
+            )
 
-        # Save assistant response
+        except Exception as ai_error:
+
+            error_text = str(
+                ai_error
+            ).lower()
+
+            # ==========================================
+            # FRIENDLY RATE LIMIT MESSAGE
+            # ==========================================
+
+            if (
+                "429" in error_text
+                or "rate_limit_exceeded" in error_text
+                or "rate limit reached" in error_text
+            ):
+
+                print(
+                    "JeffAI rate limit reached:",
+                    ai_error
+                )
+
+                return jsonify({
+                    "success": True,
+                    "conversation_id":
+                        conversation_id,
+                    "response": (
+                        "JeffAI is taking a short break ☕\n\n"
+                        "I've reached today's usage limit, "
+                        "so I can't process this message right now.\n\n"
+                        "Please try again a little later. "
+                        "Your conversations and documents are safe. 💙"
+                    ),
+                    "error_type":
+                        "rate_limit"
+                }), 200
+
+            # ==========================================
+            # OTHER AI ERRORS
+            # ==========================================
+
+            print(
+                "JeffAI error:",
+                ai_error
+            )
+
+            return jsonify({
+                "success": False,
+                "error":
+                    "JeffAI is temporarily unavailable. "
+                    "Please try again in a moment."
+            }), 503
+
+        # ==========================================
+        # SAVE ASSISTANT RESPONSE
+        # ==========================================
+
         assistant_response = requests.post(
-
             f"{SUPABASE_URL}/rest/v1/messages",
-
             headers=supabase_headers(token),
-
             json={
                 "conversation_id":
                     conversation_id,
-
                 "user_id":
                     user["id"],
-
                 "role":
                     "assistant",
-
                 "content":
                     ai_response
             },
-
             timeout=15
         )
 
@@ -1118,8 +1447,10 @@ Now respond naturally and helpfully to the user.
                     assistant_response.text
             }), assistant_response.status_code
 
+        # ==========================================
+        # AUTOMATIC SIMPLE MEMORY DETECTION
+        # ==========================================
 
-        # Automatic simple memory detection
         memory_phrases = [
             "remember that",
             "remember this",
@@ -1144,45 +1475,39 @@ Now respond naturally and helpfully to the user.
             memory_text = message[:500]
 
             requests.post(
-
                 f"{SUPABASE_URL}/rest/v1/memories",
-
                 headers=supabase_headers(token),
-
                 json={
                     "user_id":
                         user["id"],
-
                     "memory":
                         memory_text
                 },
-
                 timeout=15
             )
 
+        # ==========================================
+        # RETURN RESPONSE
+        # ==========================================
 
         return jsonify({
-
-            "success":
-                True,
-
+            "success": True,
             "conversation_id":
                 conversation_id,
-
             "response":
                 ai_response
-
         })
-
 
     except Exception as error:
 
+        print(
+            "Chat route error:",
+            error
+        )
+
         return jsonify({
-
-            "success":
-                False,
-
+            "success": False,
             "error":
-                str(error)
-
+                "Something went wrong while processing "
+                "your message. Please try again."
         }), 500

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -11,6 +13,11 @@
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#ffffff"
     >
 
     <title>JeffAI</title>
@@ -40,7 +47,11 @@
         content="https://jeffai-pwit.onrender.com/"
     >
 
-    <!-- Website structured data -->
+
+    <!-- =========================================================
+         STRUCTURED DATA
+    ========================================================== -->
+
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -51,7 +62,6 @@
     }
     </script>
 
-    <!-- Organization structured data -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -63,16 +73,21 @@
     }
     </script>
 
-    <!-- Supabase -->
+
+    <!-- =========================================================
+         SUPABASE
+    ========================================================== -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- JeffAI configuration -->
     <script src="/config.js"></script>
 
+
     <style>
+
         /* =========================================================
            GLOBAL
-        ========================================================= */
+        ========================================================== */
 
         * {
             box-sizing: border-box;
@@ -84,6 +99,7 @@
         body {
             width: 100%;
             height: 100%;
+
             font-family:
                 -apple-system,
                 BlinkMacSystemFont,
@@ -91,12 +107,14 @@
                 Roboto,
                 Arial,
                 sans-serif;
+
             overflow: hidden;
         }
 
         body {
             background: #ffffff;
             color: #202123;
+
             transition:
                 background 0.2s ease,
                 color 0.2s ease;
@@ -104,7 +122,8 @@
 
         button,
         textarea,
-        input {
+        input,
+        select {
             font-family: inherit;
         }
 
@@ -112,33 +131,43 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+
         /* =========================================================
            APP
-        ========================================================= */
+        ========================================================== */
 
         .app {
             display: flex;
+
             width: 100%;
             height: 100vh;
+
             overflow: hidden;
         }
 
+
         /* =========================================================
            SIDEBAR
-        ========================================================= */
+        ========================================================== */
 
         .sidebar {
             width: 260px;
             height: 100%;
+
             background: #f7f7f8;
             color: #202123;
+
             display: flex;
             flex-direction: column;
+
             flex-shrink: 0;
+
             border-right: 1px solid #e5e5e5;
+
             transition:
                 transform 0.25s ease,
                 background 0.2s ease;
+
             z-index: 1000;
         }
 
@@ -146,46 +175,74 @@
             padding: 14px 12px 10px;
         }
 
+
+        /* =========================================================
+           BRAND
+        ========================================================== */
+
         .brand {
             display: flex;
             align-items: center;
+
             gap: 10px;
+
             padding: 8px 8px 14px;
         }
 
         .brand-logo {
             width: 32px;
             height: 32px;
+
             border-radius: 9px;
+
             background: #111111;
             color: #ffffff;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-weight: 800;
             font-size: 16px;
+
             flex-shrink: 0;
         }
 
         .brand-name {
             font-size: 17px;
             font-weight: 700;
+
             letter-spacing: -0.2px;
         }
 
+
+        /* =========================================================
+           NEW CHAT
+        ========================================================== */
+
         .new-chat {
             width: 100%;
+
             display: flex;
             align-items: center;
+
             gap: 9px;
+
             border: 1px solid #d9d9d9;
+
             background: #ffffff;
             color: #202123;
+
             padding: 10px 12px;
+
             border-radius: 9px;
+
             cursor: pointer;
+
             text-align: left;
+
             font-size: 13px;
+
             transition:
                 background 0.15s ease,
                 border-color 0.15s ease;
@@ -196,33 +253,60 @@
             border-color: #cccccc;
         }
 
+
+        /* =========================================================
+           CONVERSATION TITLE
+        ========================================================== */
+
         .conversation-title {
             color: #777777;
+
             font-size: 11px;
             font-weight: 600;
+
             padding: 15px 18px 8px;
+
             text-transform: uppercase;
+
             letter-spacing: 0.5px;
         }
 
+
+        /* =========================================================
+           CONVERSATIONS
+        ========================================================== */
+
         .conversations {
             flex: 1;
+
             overflow-y: auto;
+
             padding: 0 8px 8px;
+
             scrollbar-width: thin;
         }
 
         .conversation {
             display: flex;
             align-items: center;
-            gap: 8px;
+
+            gap: 6px;
+
             padding: 9px 10px;
+
             margin-bottom: 2px;
+
             border-radius: 8px;
+
             cursor: pointer;
+
             color: #3f3f46;
+
             font-size: 13px;
-            transition: background 0.15s ease;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease;
         }
 
         .conversation:hover {
@@ -236,29 +320,65 @@
 
         .conversation-name {
             flex: 1;
+
             min-width: 0;
+
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .delete-conversation {
+
+        /* =========================================================
+           CONVERSATION ACTIONS
+        ========================================================== */
+
+        .conversation-actions {
+            display: flex;
+            align-items: center;
+
+            gap: 2px;
+
             opacity: 0;
+
+            transition: opacity 0.15s ease;
+        }
+
+        .conversation:hover .conversation-actions {
+            opacity: 1;
+        }
+
+        .rename-conversation,
+        .delete-conversation {
+            width: 24px;
+            height: 24px;
+
             border: none;
+
             background: transparent;
+
             color: #888888;
+
             cursor: pointer;
-            font-size: 13px;
-            padding: 2px 4px;
+
+            font-size: 12px;
+
+            padding: 0;
+
             border-radius: 5px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
             transition:
-                opacity 0.15s ease,
                 background 0.15s ease,
                 color 0.15s ease;
         }
 
-        .conversation:hover .delete-conversation {
-            opacity: 1;
+        .rename-conversation:hover {
+            color: #333333;
+            background: rgba(0, 0, 0, 0.07);
         }
 
         .delete-conversation:hover {
@@ -266,20 +386,60 @@
             background: rgba(217, 48, 37, 0.08);
         }
 
+
         /* =========================================================
            SIDEBAR FOOTER
-        ========================================================= */
+        ========================================================== */
 
         .sidebar-footer {
             padding: 10px;
+
             border-top: 1px solid #e5e5e5;
+        }
+
+        .settings-sidebar-button {
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            border: none;
+
+            background: transparent;
+            color: #555555;
+
+            padding: 9px 10px;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            font-size: 12px;
+
+            text-align: left;
+
+            margin-bottom: 4px;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease;
+        }
+
+        .settings-sidebar-button:hover {
+            background: #eeeeee;
+            color: #111111;
         }
 
         .user-box {
             display: flex;
             align-items: center;
+
             gap: 9px;
+
             padding: 8px;
+
             border-radius: 9px;
         }
 
@@ -290,14 +450,19 @@
         .avatar {
             width: 32px;
             height: 32px;
+
             border-radius: 50%;
+
             background: #111111;
             color: #ffffff;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-weight: 700;
             font-size: 13px;
+
             flex-shrink: 0;
         }
 
@@ -308,19 +473,27 @@
 
         .user-email {
             font-size: 12px;
+
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+
             color: #444444;
         }
 
         .logout-button {
             border: none;
+
             background: transparent;
+
             color: #777777;
+
             cursor: pointer;
+
             font-size: 11px;
+
             margin-top: 3px;
+
             padding: 0;
         }
 
@@ -328,53 +501,75 @@
             color: #111111;
         }
 
+
         /* =========================================================
            MAIN
-        ========================================================= */
+        ========================================================== */
 
         .main {
             flex: 1;
+
             height: 100%;
+
             min-width: 0;
+
             display: flex;
             flex-direction: column;
+
             background: #ffffff;
+
             position: relative;
         }
 
+
         /* =========================================================
            TOPBAR
-        ========================================================= */
+        ========================================================== */
 
         .topbar {
             height: 58px;
+
             border-bottom: 1px solid #eeeeee;
+
             display: flex;
             align-items: center;
             justify-content: space-between;
+
             padding: 0 18px;
+
             flex-shrink: 0;
+
             background: rgba(255, 255, 255, 0.92);
+
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+
             z-index: 20;
         }
 
         .topbar-left {
             display: flex;
             align-items: center;
+
             gap: 10px;
+
             min-width: 0;
         }
 
         .mobile-menu {
             display: none;
+
             width: 36px;
             height: 36px;
+
             border: none;
+
             background: transparent;
+
             border-radius: 8px;
+
             font-size: 21px;
+
             cursor: pointer;
         }
 
@@ -384,8 +579,10 @@
 
         .top-title {
             max-width: 300px;
+
             font-size: 15px;
             font-weight: 600;
+
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -394,16 +591,25 @@
         .download-app {
             display: flex;
             align-items: center;
+
             text-decoration: none;
+
             border: 1px solid #dedede;
+
             background: #ffffff;
             color: #202123;
+
             padding: 7px 11px;
+
             border-radius: 8px;
+
             font-size: 12px;
+
             cursor: pointer;
+
             margin-left: auto;
             margin-right: 8px;
+
             transition:
                 background 0.15s ease,
                 border-color 0.15s ease;
@@ -417,11 +623,17 @@
         .theme-button {
             width: 36px;
             height: 36px;
+
             border: 1px solid #dedede;
+
             border-radius: 9px;
+
             background: #ffffff;
+
             cursor: pointer;
+
             font-size: 17px;
+
             transition:
                 background 0.15s ease,
                 border-color 0.15s ease;
@@ -431,75 +643,102 @@
             background: #f5f5f5;
         }
 
+
         /* =========================================================
            CHAT AREA
-        ========================================================= */
+        ========================================================== */
 
         .chat-area {
             flex: 1;
+
             overflow-y: auto;
-            padding: 28px 20px 180px;
+
+            padding: 28px 20px 190px;
+
             scroll-behavior: smooth;
         }
 
         .messages {
             max-width: 760px;
+
             margin: 0 auto;
         }
 
+
         /* =========================================================
            WELCOME
-        ========================================================= */
+        ========================================================== */
 
         .welcome {
             min-height: 58vh;
+
             display: flex;
             flex-direction: column;
+
             align-items: center;
             justify-content: center;
+
             text-align: center;
+
             padding: 30px 20px;
         }
 
         .welcome-logo {
             width: 60px;
             height: 60px;
+
             border-radius: 18px;
+
             background: #111111;
             color: #ffffff;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-weight: 800;
             font-size: 26px;
+
             margin-bottom: 20px;
+
             box-shadow:
                 0 8px 25px rgba(0, 0, 0, 0.12);
         }
 
         .welcome h1 {
             font-size: 28px;
+
             font-weight: 600;
+
             letter-spacing: -0.6px;
+
             margin-bottom: 10px;
+
             color: #202123;
         }
 
         .welcome p {
             color: #777777;
+
             font-size: 14px;
+
             max-width: 520px;
+
             line-height: 1.65;
         }
 
+
         /* =========================================================
-           MESSAGE LAYOUT
-        ========================================================= */
+           MESSAGE
+        ========================================================== */
 
         .message {
             display: flex;
+
             width: 100%;
+
             margin-bottom: 30px;
+
             line-height: 1.65;
         }
 
@@ -522,14 +761,18 @@
 
         .message-role {
             font-size: 11px;
+
             font-weight: 600;
+
             margin-bottom: 5px;
+
             color: #777777;
         }
 
         .message.user .message-content {
             display: flex;
             flex-direction: column;
+
             align-items: flex-end;
         }
 
@@ -543,71 +786,146 @@
 
         .message-text {
             white-space: pre-wrap;
+
             word-wrap: break-word;
+
             overflow-wrap: break-word;
+
             font-size: 14px;
         }
 
-        /* =========================================================
-           USER MESSAGE
-        ========================================================= */
-
         .message.user .message-text {
             background: #f1f1f1;
+
             color: #202123;
+
             padding: 10px 15px;
+
             border-radius: 17px 17px 4px 17px;
         }
 
-        /* =========================================================
-           ASSISTANT MESSAGE
-        ========================================================= */
-
         .message.assistant .message-text {
             background: transparent;
+
             color: #202123;
+
             padding: 0;
+
             border-radius: 0;
         }
 
+
+        /* =========================================================
+           AI VOICE RESPONSE BUTTON
+        ========================================================== */
+
+        .assistant-message-actions {
+            display: flex;
+            align-items: center;
+
+            gap: 6px;
+
+            margin-top: 7px;
+        }
+
+        .speak-button {
+            width: 29px;
+            height: 29px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: transparent;
+            color: #888888;
+
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 14px;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease,
+                transform 0.1s ease;
+        }
+
+        .speak-button:hover {
+            background: #eeeeee;
+            color: #222222;
+        }
+
+        .speak-button:active {
+            transform: scale(0.94);
+        }
+
+        .speak-button.speaking {
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .speak-button.disabled {
+            opacity: 0.35;
+        }
+
+
         /* =========================================================
            INPUT AREA
-        ========================================================= */
+        ========================================================== */
 
         .input-area {
             position: fixed;
+
             left: 260px;
             right: 0;
             bottom: 0;
+
             background:
                 linear-gradient(
                     to top,
                     #ffffff 68%,
                     rgba(255, 255, 255, 0)
                 );
+
             padding: 18px 20px 20px;
+
             z-index: 30;
         }
 
         .document-tools {
             max-width: 760px;
+
             margin: 0 auto 8px;
+
             display: flex;
             align-items: center;
+
             gap: 8px;
+
             min-height: 30px;
         }
 
         .upload-button {
             display: inline-flex;
             align-items: center;
+
             border: 1px solid #dedede;
+
             background: #ffffff;
+
             color: #444444;
+
             padding: 7px 10px;
+
             border-radius: 8px;
+
             cursor: pointer;
+
             font-size: 11px;
+
             transition:
                 background 0.15s ease,
                 border-color 0.15s ease;
@@ -620,24 +938,42 @@
 
         #uploadStatus {
             font-size: 11px;
+
             color: #777777;
+
             overflow: hidden;
+
             text-overflow: ellipsis;
+
             white-space: nowrap;
         }
 
+
+        /* =========================================================
+           CHAT INPUT CONTAINER
+        ========================================================== */
+
         .input-container {
             max-width: 760px;
+
             margin: 0 auto;
+
             display: flex;
             align-items: flex-end;
+
             gap: 8px;
+
             border: 1px solid #d9d9d9;
+
             border-radius: 17px;
+
             padding: 9px 9px 9px 15px;
+
             background: #ffffff;
+
             box-shadow:
                 0 5px 20px rgba(0, 0, 0, 0.08);
+
             transition:
                 border-color 0.15s ease,
                 box-shadow 0.15s ease;
@@ -645,22 +981,34 @@
 
         .input-container:focus-within {
             border-color: #bdbdbd;
+
             box-shadow:
                 0 6px 24px rgba(0, 0, 0, 0.1);
         }
 
         #messageInput {
             flex: 1;
+
             border: none;
+
             outline: none;
+
             resize: none;
+
             max-height: 180px;
+
             min-height: 24px;
+
             font-family: inherit;
+
             font-size: 14px;
+
             line-height: 1.5;
+
             padding: 5px 0;
+
             background: transparent;
+
             color: #202123;
         }
 
@@ -668,19 +1016,118 @@
             color: #999999;
         }
 
-        .send-button {
+
+        /* =========================================================
+           VOICE INPUT BUTTON
+        ========================================================== */
+
+        .voice-button {
             width: 36px;
             height: 36px;
+
             border: none;
+
             border-radius: 10px;
-            background: #111111;
-            color: #ffffff;
+
+            background: #eeeeee;
+
+            color: #333333;
+
             cursor: pointer;
+
             font-size: 17px;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             flex-shrink: 0;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease,
+                transform 0.1s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .voice-button:hover {
+            background: #dddddd;
+        }
+
+        .voice-button:active {
+            transform: scale(0.95);
+        }
+
+        .voice-button:focus-visible {
+            outline: 2px solid #111111;
+            outline-offset: 2px;
+        }
+
+        .voice-button:disabled {
+            opacity: 0.45;
+
+            cursor: not-allowed;
+
+            transform: none;
+        }
+
+        .voice-button.listening {
+            background: #111111;
+
+            color: #ffffff;
+
+            animation: voicePulse 1.2s infinite;
+        }
+
+        .voice-button.listening:hover {
+            background: #333333;
+        }
+
+        @keyframes voicePulse {
+
+            0% {
+                box-shadow:
+                    0 0 0 0 rgba(17, 17, 17, 0.28);
+            }
+
+            50% {
+                box-shadow:
+                    0 0 0 7px rgba(17, 17, 17, 0);
+            }
+
+            100% {
+                box-shadow:
+                    0 0 0 0 rgba(17, 17, 17, 0);
+            }
+        }
+
+
+        /* =========================================================
+           SEND BUTTON
+        ========================================================== */
+
+        .send-button {
+            width: 36px;
+            height: 36px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #111111;
+
+            color: #ffffff;
+
+            cursor: pointer;
+
+            font-size: 17px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
             transition:
                 background 0.15s ease,
                 opacity 0.15s ease,
@@ -697,33 +1144,77 @@
 
         .send-button:disabled {
             opacity: 0.45;
+
             cursor: not-allowed;
         }
 
         .input-hint {
             max-width: 760px;
+
             margin: 7px auto 0;
-            text-align: center;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
             color: #999999;
+
             font-size: 10px;
         }
 
+        .character-count {
+            opacity: 0.8;
+        }
+
+
+        /* =========================================================
+           VOICE STATUS
+        ========================================================== */
+
+        .voice-status {
+            max-width: 760px;
+
+            margin: 5px auto 0;
+
+            min-height: 15px;
+
+            text-align: center;
+
+            color: #777777;
+
+            font-size: 10px;
+
+            opacity: 0;
+
+            transition: opacity 0.15s ease;
+        }
+
+        .voice-status.active {
+            opacity: 1;
+        }
+
+
         /* =========================================================
            TYPING INDICATOR
-        ========================================================= */
+        ========================================================== */
 
         .typing {
             display: flex;
             align-items: center;
+
             gap: 4px;
+
             padding-top: 7px;
         }
 
         .typing span {
             width: 6px;
             height: 6px;
+
             background: #999999;
+
             border-radius: 50%;
+
             animation: typing 1.2s infinite;
         }
 
@@ -736,6 +1227,7 @@
         }
 
         @keyframes typing {
+
             0%,
             60%,
             100% {
@@ -749,9 +1241,319 @@
             }
         }
 
+
+        /* =========================================================
+           SETTINGS OVERLAY
+        ========================================================== */
+
+        .settings-overlay {
+            position: fixed;
+
+            inset: 0;
+
+            background: rgba(0, 0, 0, 0.42);
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            z-index: 5000;
+
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .settings-overlay.open {
+            display: flex;
+        }
+
+        .settings-panel {
+            width: 100%;
+            max-width: 560px;
+
+            max-height: 88vh;
+
+            overflow-y: auto;
+
+            background: #ffffff;
+
+            color: #202123;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 20px 70px rgba(0, 0, 0, 0.25);
+
+            animation: settingsOpen 0.18s ease;
+        }
+
+        @keyframes settingsOpen {
+
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 20px 22px;
+
+            border-bottom: 1px solid #eeeeee;
+
+            position: sticky;
+            top: 0;
+
+            background: #ffffff;
+
+            z-index: 2;
+        }
+
+        .settings-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .settings-header p {
+            margin-top: 4px;
+
+            color: #777777;
+
+            font-size: 12px;
+        }
+
+        .settings-close {
+            width: 34px;
+            height: 34px;
+
+            border: none;
+
+            background: #f1f1f1;
+
+            color: #333333;
+
+            border-radius: 9px;
+
+            cursor: pointer;
+
+            font-size: 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-close:hover {
+            background: #e5e5e5;
+        }
+
+        .settings-body {
+            padding: 20px 22px 24px;
+        }
+
+        .settings-section {
+            margin-bottom: 25px;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-section-title {
+            font-size: 11px;
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
+
+            color: #777777;
+
+            margin-bottom: 9px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 14px 0;
+
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .setting-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .setting-description {
+            margin-top: 3px;
+
+            color: #777777;
+
+            font-size: 11px;
+
+            line-height: 1.45;
+        }
+
+        .setting-control {
+            flex-shrink: 0;
+        }
+
+        .setting-select {
+            min-width: 145px;
+
+            padding: 8px 10px;
+
+            border: 1px solid #d8d8d8;
+
+            border-radius: 8px;
+
+            background: #ffffff;
+
+            color: #222222;
+
+            outline: none;
+
+            cursor: pointer;
+
+            font-size: 12px;
+        }
+
+        .setting-select:focus {
+            border-color: #999999;
+        }
+
+        .setting-range {
+            width: 145px;
+
+            cursor: pointer;
+        }
+
+        .range-value {
+            display: inline-block;
+
+            min-width: 35px;
+
+            text-align: right;
+
+            color: #666666;
+
+            font-size: 11px;
+
+            margin-left: 7px;
+        }
+
+
+        /* =========================================================
+           SETTINGS TOGGLE
+        ========================================================== */
+
+        .toggle {
+            position: relative;
+
+            width: 44px;
+            height: 25px;
+
+            display: inline-block;
+
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+
+            inset: 0;
+
+            background: #d5d5d5;
+
+            border-radius: 30px;
+
+            cursor: pointer;
+
+            transition: background 0.2s ease;
+        }
+
+        .toggle-slider::before {
+            content: "";
+
+            position: absolute;
+
+            width: 19px;
+            height: 19px;
+
+            left: 3px;
+            top: 3px;
+
+            background: #ffffff;
+
+            border-radius: 50%;
+
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.2);
+
+            transition: transform 0.2s ease;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: #111111;
+        }
+
+        .toggle input:checked + .toggle-slider::before {
+            transform: translateX(19px);
+        }
+
+
+        /* =========================================================
+           SETTINGS FOOTER
+        ========================================================== */
+
+        .settings-footer {
+            padding: 15px 22px;
+
+            border-top: 1px solid #eeeeee;
+
+            color: #999999;
+
+            font-size: 10px;
+
+            text-align: center;
+        }
+
+
         /* =========================================================
            DARK MODE
-        ========================================================= */
+        ========================================================== */
 
         body.dark {
             background: #212121;
@@ -797,8 +1599,32 @@
             color: #ffffff;
         }
 
+        body.dark .rename-conversation,
+        body.dark .delete-conversation {
+            color: #999999;
+        }
+
+        body.dark .rename-conversation:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        body.dark .delete-conversation:hover {
+            color: #ff6b6b;
+            background: rgba(217, 48, 37, 0.15);
+        }
+
         body.dark .sidebar-footer {
             border-top-color: #2f2f2f;
+        }
+
+        body.dark .settings-sidebar-button {
+            color: #bbbbbb;
+        }
+
+        body.dark .settings-sidebar-button:hover {
+            background: #242424;
+            color: #ffffff;
         }
 
         body.dark .user-box:hover {
@@ -887,6 +1713,20 @@
             color: #eeeeee;
         }
 
+        body.dark .speak-button {
+            color: #999999;
+        }
+
+        body.dark .speak-button:hover {
+            background: #303030;
+            color: #ffffff;
+        }
+
+        body.dark .speak-button.speaking {
+            background: #ffffff;
+            color: #111111;
+        }
+
         body.dark .input-area {
             background:
                 linear-gradient(
@@ -913,12 +1753,14 @@
         body.dark .input-container {
             background: #2f2f2f;
             border-color: #4a4a4a;
+
             box-shadow:
                 0 5px 20px rgba(0, 0, 0, 0.25);
         }
 
         body.dark .input-container:focus-within {
             border-color: #5a5a5a;
+
             box-shadow:
                 0 6px 24px rgba(0, 0, 0, 0.3);
         }
@@ -929,6 +1771,24 @@
 
         body.dark #messageInput::placeholder {
             color: #888888;
+        }
+
+        body.dark .voice-button {
+            background: #444444;
+            color: #ffffff;
+        }
+
+        body.dark .voice-button:hover {
+            background: #555555;
+        }
+
+        body.dark .voice-button.listening {
+            background: #ffffff;
+            color: #111111;
+        }
+
+        body.dark .voice-button.listening:hover {
+            background: #dddddd;
         }
 
         body.dark .send-button {
@@ -944,18 +1804,95 @@
             color: #777777;
         }
 
+        body.dark .voice-status {
+            color: #aaaaaa;
+        }
+
+
+        /* =========================================================
+           DARK SETTINGS
+        ========================================================== */
+
+        body.dark .settings-panel {
+            background: #242424;
+            color: #eeeeee;
+        }
+
+        body.dark .settings-header {
+            background: #242424;
+            border-color: #383838;
+        }
+
+        body.dark .settings-header p {
+            color: #999999;
+        }
+
+        body.dark .settings-close {
+            background: #333333;
+            color: #ffffff;
+        }
+
+        body.dark .settings-close:hover {
+            background: #404040;
+        }
+
+        body.dark .settings-section-title {
+            color: #999999;
+        }
+
+        body.dark .setting-row {
+            border-color: #383838;
+        }
+
+        body.dark .setting-description {
+            color: #999999;
+        }
+
+        body.dark .setting-select {
+            background: #303030;
+            border-color: #4a4a4a;
+            color: #ffffff;
+        }
+
+        body.dark .range-value {
+            color: #aaaaaa;
+        }
+
+        body.dark .settings-footer {
+            border-color: #383838;
+            color: #777777;
+        }
+
+        body.dark .toggle-slider {
+            background: #555555;
+        }
+
+        body.dark .toggle input:checked + .toggle-slider {
+            background: #ffffff;
+        }
+
+        body.dark .toggle input:checked + .toggle-slider::before {
+            background: #111111;
+        }
+
+
         /* =========================================================
            MOBILE
-        ========================================================= */
+        ========================================================== */
 
         @media (max-width: 768px) {
+
             .sidebar {
                 position: fixed;
+
                 left: 0;
                 top: 0;
                 bottom: 0;
+
                 width: 280px;
+
                 transform: translateX(-100%);
+
                 box-shadow:
                     8px 0 30px rgba(0, 0, 0, 0.18);
             }
@@ -966,6 +1903,7 @@
 
             .mobile-menu {
                 display: flex;
+
                 align-items: center;
                 justify-content: center;
             }
@@ -976,7 +1914,9 @@
 
             .download-app {
                 font-size: 10px;
+
                 padding: 6px 8px;
+
                 margin-right: 6px;
             }
 
@@ -990,7 +1930,7 @@
             }
 
             .chat-area {
-                padding: 20px 14px 160px;
+                padding: 20px 14px 180px;
             }
 
             .messages {
@@ -1011,29 +1951,39 @@
 
             .welcome {
                 min-height: 55vh;
+
                 padding: 20px 12px;
             }
 
             .welcome-logo {
                 width: 54px;
                 height: 54px;
+
                 border-radius: 16px;
+
                 font-size: 23px;
             }
 
             .welcome h1 {
                 font-size: 24px;
+
                 letter-spacing: -0.4px;
             }
 
             .welcome p {
                 font-size: 13px;
+
                 max-width: 330px;
             }
 
             .input-area {
                 left: 0;
-                padding: 10px 10px 12px;
+
+                padding:
+                    10px
+                    10px
+                    12px;
+
                 padding-top: 18px;
             }
 
@@ -1043,6 +1993,7 @@
 
             .input-container {
                 border-radius: 16px;
+
                 padding-left: 13px;
             }
 
@@ -1050,17 +2001,62 @@
                 display: none;
             }
 
+            .voice-status {
+                font-size: 10px;
+            }
+
             #messageInput {
                 font-size: 14px;
             }
 
+            .voice-button,
             .send-button {
                 width: 35px;
                 height: 35px;
             }
+
+            .conversation-actions {
+                opacity: 1;
+            }
+
+            .settings-overlay {
+                align-items: flex-end;
+
+                padding: 0;
+            }
+
+            .settings-panel {
+                max-width: none;
+
+                max-height: 92vh;
+
+                border-radius:
+                    18px
+                    18px
+                    0
+                    0;
+            }
+
+            .setting-row {
+                gap: 12px;
+            }
+
+            .setting-description {
+                max-width: 240px;
+            }
+
+            .setting-select {
+                min-width: 120px;
+            }
+
+            .setting-range {
+                width: 105px;
+            }
         }
 
+
         @media (max-width: 420px) {
+
             .download-app {
                 display: none;
             }
@@ -1076,13 +2072,43 @@
             .welcome h1 {
                 font-size: 22px;
             }
+
+            .document-tools {
+                gap: 5px;
+            }
+
+            .upload-button {
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+
+            .setting-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .setting-control {
+                width: 100%;
+            }
+
+            .setting-select {
+                width: 100%;
+            }
+
+            .setting-range {
+                width: calc(100% - 45px);
+            }
         }
+
     </style>
+
 </head>
+
 
 <body>
 
     <div class="app">
+
 
         <!-- =====================================================
              SIDEBAR
@@ -1096,31 +2122,41 @@
             <div class="sidebar-header">
 
                 <div class="brand">
-                    <div class="brand-logo">J</div>
+
+                    <div class="brand-logo">
+                        J
+                    </div>
 
                     <div class="brand-name">
                         JeffAI
                     </div>
+
                 </div>
+
 
                 <button
                     class="new-chat"
-                    onclick="newChat()"
+                    id="newChatButton"
+                    type="button"
                 >
                     + New chat
                 </button>
 
             </div>
 
+
             <div class="conversation-title">
                 Conversations
             </div>
+
 
             <div
                 class="conversations"
                 id="conversationList"
             >
+
                 <div
+                    class="loading-conversations"
                     style="
                         color: #777;
                         font-size: 12px;
@@ -1129,9 +2165,25 @@
                 >
                     Loading...
                 </div>
+
             </div>
 
+
             <div class="sidebar-footer">
+
+                <!-- SETTINGS -->
+
+                <button
+                    class="settings-sidebar-button"
+                    id="settingsButton"
+                    type="button"
+                >
+                    ⚙️
+                    <span>Settings</span>
+                </button>
+
+
+                <!-- USER -->
 
                 <div class="user-box">
 
@@ -1142,6 +2194,7 @@
                         J
                     </div>
 
+
                     <div class="user-info">
 
                         <div
@@ -1151,9 +2204,11 @@
                             Loading...
                         </div>
 
+
                         <button
                             class="logout-button"
-                            onclick="logout()"
+                            id="logoutButton"
+                            type="button"
                         >
                             Log out
                         </button>
@@ -1166,13 +2221,17 @@
 
         </aside>
 
+
         <!-- =====================================================
              MAIN
         ====================================================== -->
 
         <main class="main">
 
-            <!-- TOPBAR -->
+
+            <!-- =================================================
+                 TOPBAR
+            ================================================== -->
 
             <header class="topbar">
 
@@ -1180,11 +2239,14 @@
 
                     <button
                         class="mobile-menu"
-                        onclick="toggleSidebar()"
+                        id="mobileMenuButton"
+                        type="button"
                         aria-label="Open menu"
+                        title="Open menu"
                     >
                         ☰
                     </button>
+
 
                     <div
                         class="top-title"
@@ -1195,6 +2257,7 @@
 
                 </div>
 
+
                 <a
                     href="/downloads/JeffAI.apk"
                     class="download-app"
@@ -1203,10 +2266,11 @@
                     📱 Download App
                 </a>
 
+
                 <button
                     class="theme-button"
                     id="themeButton"
-                    onclick="toggleTheme()"
+                    type="button"
                     title="Toggle theme"
                     aria-label="Toggle theme"
                 >
@@ -1215,13 +2279,15 @@
 
             </header>
 
+
             <!-- =================================================
-                 CHAT
+                 CHAT AREA
             ================================================== -->
 
             <section
                 class="chat-area"
                 id="chatArea"
+                aria-label="Chat messages"
             >
 
                 <div
@@ -1238,9 +2304,11 @@
                             J
                         </div>
 
+
                         <h1>
                             How can I help you?
                         </h1>
+
 
                         <p>
                             I'm JeffAI, your personal AI assistant.
@@ -1255,13 +2323,17 @@
 
             </section>
 
+
             <!-- =================================================
-                 INPUT
+                 INPUT AREA
             ================================================== -->
 
             <div class="input-area">
 
-                <!-- DOCUMENT UPLOAD -->
+
+                <!-- =================================================
+                     DOCUMENT UPLOAD
+                ================================================== -->
 
                 <div class="document-tools">
 
@@ -1272,23 +2344,27 @@
                         hidden
                     >
 
+
                     <button
                         type="button"
                         class="upload-button"
-                        onclick="
-                            document
-                                .getElementById('documentInput')
-                                .click()
-                        "
+                        id="uploadButton"
                     >
                         📎 Upload document
                     </button>
 
-                    <span id="uploadStatus"></span>
+
+                    <span
+                        id="uploadStatus"
+                        aria-live="polite"
+                    ></span>
 
                 </div>
 
-                <!-- CHAT FORM -->
+
+                <!-- =================================================
+                     CHAT FORM
+                ================================================== -->
 
                 <form
                     class="input-container"
@@ -1298,23 +2374,74 @@
                     <textarea
                         id="messageInput"
                         rows="1"
+                        maxlength="10000"
                         placeholder="Message JeffAI..."
                         autocomplete="off"
+                        aria-label="Message JeffAI"
                     ></textarea>
+
+
+                    <!-- =================================================
+                         VOICE INPUT
+                    ================================================== -->
+
+                    <button
+                        type="button"
+                        class="voice-button"
+                        id="voiceButton"
+                        title="Voice input"
+                        aria-label="Voice input"
+                        aria-pressed="false"
+                    >
+                        🎤
+                    </button>
+
+
+                    <!-- =================================================
+                         SEND
+                    ================================================== -->
 
                     <button
                         type="submit"
                         class="send-button"
                         id="sendButton"
                         aria-label="Send message"
+                        title="Send message"
                     >
                         ↑
                     </button>
 
                 </form>
 
+
+                <!-- =================================================
+                     VOICE STATUS
+                ================================================== -->
+
+                <div
+                    class="voice-status"
+                    id="voiceStatus"
+                    aria-live="polite"
+                ></div>
+
+
+                <!-- =================================================
+                     INPUT HINT
+                ================================================== -->
+
                 <div class="input-hint">
-                    Enter to send • Shift + Enter for a new line
+
+                    <span id="inputHintText">
+                        Enter to send • Shift + Enter for a new line
+                    </span>
+
+                    <span
+                        class="character-count"
+                        id="characterCount"
+                    >
+                        0 / 10,000
+                    </span>
+
                 </div>
 
             </div>
@@ -1323,10 +2450,330 @@
 
     </div>
 
+
+    <!-- =========================================================
+         SETTINGS PANEL
+    ========================================================== -->
+
+    <div
+        class="settings-overlay"
+        id="settingsOverlay"
+        aria-hidden="true"
+    >
+
+        <section
+            class="settings-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settingsTitle"
+        >
+
+            <div class="settings-header">
+
+                <div>
+
+                    <h2 id="settingsTitle">
+                        Settings
+                    </h2>
+
+                    <p>
+                        Customize how JeffAI works for you.
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="settings-close"
+                    id="settingsCloseButton"
+                    type="button"
+                    aria-label="Close settings"
+                    title="Close settings"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <div class="settings-body">
+
+
+                <!-- =================================================
+                     VOICE SETTINGS
+                ================================================== -->
+
+                <div class="settings-section">
+
+                    <div class="settings-section-title">
+                        Voice
+                    </div>
+
+
+                    <!-- AI VOICE -->
+
+                    <div class="setting-row">
+
+                        <div class="setting-info">
+
+                            <div class="setting-name">
+                                AI voice responses
+                            </div>
+
+                            <div class="setting-description">
+                                Allow JeffAI to read its responses aloud.
+                            </div>
+
+                        </div>
+
+
+                        <div class="setting-control">
+
+                            <label class="toggle">
+
+                                <input
+                                    type="checkbox"
+                                    id="voiceEnabledSetting"
+                                >
+
+                                <span class="toggle-slider"></span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- AUTO VOICE -->
+
+                    <div class="setting-row">
+
+                        <div class="setting-info">
+
+                            <div class="setting-name">
+                                Automatically read responses
+                            </div>
+
+                            <div class="setting-description">
+                                JeffAI will automatically speak new AI responses.
+                            </div>
+
+                        </div>
+
+
+                        <div class="setting-control">
+
+                            <label class="toggle">
+
+                                <input
+                                    type="checkbox"
+                                    id="autoVoiceSetting"
+                                >
+
+                                <span class="toggle-slider"></span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- VOICE SELECT -->
+
+                    <div class="setting-row">
+
+                        <div class="setting-info">
+
+                            <div class="setting-name">
+                                Voice
+                            </div>
+
+                            <div class="setting-description">
+                                Choose the voice used by your browser.
+                            </div>
+
+                        </div>
+
+
+                        <div class="setting-control">
+
+                            <select
+                                class="setting-select"
+                                id="voiceSelect"
+                            >
+
+                                <option value="">
+                                    Default voice
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SPEECH SPEED -->
+
+                    <div class="setting-row">
+
+                        <div class="setting-info">
+
+                            <div class="setting-name">
+                                Speech speed
+                            </div>
+
+                            <div class="setting-description">
+                                Control how quickly JeffAI speaks.
+                            </div>
+
+                        </div>
+
+
+                        <div class="setting-control">
+
+                            <input
+                                class="setting-range"
+                                type="range"
+                                id="speechRateSetting"
+                                min="0.5"
+                                max="2"
+                                step="0.1"
+                                value="1"
+                            >
+
+                            <span
+                                class="range-value"
+                                id="speechRateValue"
+                            >
+                                1.0x
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     APPEARANCE
+                ================================================== -->
+
+                <div class="settings-section">
+
+                    <div class="settings-section-title">
+                        Appearance
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div class="setting-info">
+
+                            <div class="setting-name">
+                                Theme
+                            </div>
+
+                            <div class="setting-description">
+                                Choose light, dark, or follow your device.
+                            </div>
+
+                        </div>
+
+
+                        <div class="setting-control">
+
+                            <select
+                                class="setting-select"
+                                id="themeSetting"
+                            >
+
+                                <option value="light">
+                                    Light
+                                </option>
+
+                                <option value="dark">
+                                    Dark
+                                </option>
+
+                                <option value="system">
+                                    System
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     CHAT SETTINGS
+                ================================================== -->
+
+                <div class="settings-section">
+
+                    <div class="settings-section-title">
+                        Chat
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div class="setting-info">
+
+                            <div class="setting-name">
+                                Enter to send
+                            </div>
+
+                            <div class="setting-description">
+                                Press Enter to send a message. Turn this off if you prefer Enter for new lines.
+                            </div>
+
+                        </div>
+
+
+                        <div class="setting-control">
+
+                            <label class="toggle">
+
+                                <input
+                                    type="checkbox"
+                                    id="enterToSendSetting"
+                                >
+
+                                <span class="toggle-slider"></span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="settings-footer">
+                JeffAI settings are saved automatically on this device.
+            </div>
+
+        </section>
+
+    </div>
+
+
     <script>
+
         /* =========================================================
            SUPABASE
-        ========================================================= */
+        ========================================================== */
 
         const supabaseClient =
             window.supabase.createClient(
@@ -1334,91 +2781,197 @@
                 SUPABASE_ANON_KEY
             );
 
+
         /* =========================================================
            GLOBAL VARIABLES
-        ========================================================= */
+        ========================================================== */
 
         let currentConversationId = null;
 
+        let recognition = null;
+
+        let isListening = false;
+
+        let voiceBaseText = "";
+
+        let finalVoiceTranscript = "";
+
+        let currentSpeakingButton = null;
+
+        let currentSpeechText = "";
+
+
+        /* =========================================================
+           DOM HELPERS
+        ========================================================== */
+
+        function getElement(id) {
+
+            return document.getElementById(id);
+        }
+
+
+        /* =========================================================
+           SETTINGS STORAGE
+        ========================================================== */
+
+        const SETTINGS_KEYS = {
+
+            voiceEnabled:
+                "jeffai-voice-enabled",
+
+            autoVoice:
+                "jeffai-auto-voice",
+
+            voiceName:
+                "jeffai-voice-name",
+
+            speechRate:
+                "jeffai-speech-rate",
+
+            theme:
+                "jeffai-theme",
+
+            enterToSend:
+                "jeffai-enter-to-send"
+        };
+
+
+        function getSetting(
+            key,
+            fallback
+        ) {
+
+            const value =
+                localStorage.getItem(key);
+
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+
+                return fallback;
+            }
+
+
+            return value;
+        }
+
+
+        function setSetting(
+            key,
+            value
+        ) {
+
+            localStorage.setItem(
+                key,
+                value
+            );
+        }
+
+
         /* =========================================================
            GET USER
-        ========================================================= */
+        ========================================================== */
 
         async function getUser() {
+
             const {
                 data,
                 error
             } = await supabaseClient.auth.getUser();
 
+
             if (
                 error ||
                 !data.user
             ) {
-                window.location.href = "/login.html";
+
+                window.location.href =
+                    "/login.html";
+
                 return null;
             }
+
 
             return data.user;
         }
 
+
         /* =========================================================
            GET TOKEN
-        ========================================================= */
+        ========================================================== */
 
         async function getToken() {
+
             const {
                 data,
                 error
             } = await supabaseClient.auth.getSession();
 
+
             if (
                 error ||
                 !data.session
             ) {
+
                 throw new Error(
                     "You are not logged in."
                 );
             }
 
+
             return data.session.access_token;
         }
 
+
         /* =========================================================
            USER INFO
-        ========================================================= */
+        ========================================================== */
 
         async function loadUser() {
-            const user = await getUser();
+
+            const user =
+                await getUser();
+
 
             if (!user) {
                 return;
             }
 
+
             const email =
                 user.email || "User";
 
-            document
-                .getElementById("userEmail")
+
+            getElement("userEmail")
                 .textContent = email;
+
 
             const firstLetter =
                 email
                     .charAt(0)
                     .toUpperCase();
 
-            document
-                .getElementById("userAvatar")
-                .textContent = firstLetter;
+
+            getElement("userAvatar")
+                .textContent =
+                firstLetter;
         }
+
 
         /* =========================================================
            LOAD CONVERSATIONS
-        ========================================================= */
+        ========================================================== */
 
         async function loadConversations() {
+
             try {
+
                 const token =
                     await getToken();
+
 
                 const response =
                     await fetch(
@@ -1431,15 +2984,19 @@
                         }
                     );
 
+
                 const data =
                     await response.json();
 
+
                 const list =
-                    document.getElementById(
+                    getElement(
                         "conversationList"
                     );
 
+
                 if (!data.success) {
+
                     list.innerHTML = `
                         <div
                             style="
@@ -1455,10 +3012,12 @@
                     return;
                 }
 
+
                 if (
                     !data.conversations ||
                     data.conversations.length === 0
                 ) {
+
                     list.innerHTML = `
                         <div
                             style="
@@ -1474,7 +3033,9 @@
                     return;
                 }
 
+
                 list.innerHTML = "";
+
 
                 data.conversations.forEach(
                     conversation => {
@@ -1484,72 +3045,159 @@
                                 "div"
                             );
 
+
                         item.className =
                             "conversation";
+
 
                         if (
                             conversation.id ===
                             currentConversationId
                         ) {
+
                             item.classList.add(
                                 "active"
                             );
                         }
+
 
                         const name =
                             document.createElement(
                                 "div"
                             );
 
+
                         name.className =
                             "conversation-name";
+
 
                         name.textContent =
                             conversation.title ||
                             "New conversation";
+
+
+                        const actions =
+                            document.createElement(
+                                "div"
+                            );
+
+
+                        actions.className =
+                            "conversation-actions";
+
+
+                        const renameButton =
+                            document.createElement(
+                                "button"
+                            );
+
+
+                        renameButton.className =
+                            "rename-conversation";
+
+
+                        renameButton.textContent =
+                            "✎";
+
+
+                        renameButton.title =
+                            "Rename conversation";
+
+
+                        renameButton.setAttribute(
+                            "aria-label",
+                            "Rename conversation"
+                        );
+
+
+                        renameButton.onclick =
+                            async function(event) {
+
+                                event.stopPropagation();
+
+
+                                await renameConversation(
+                                    conversation.id,
+                                    conversation.title
+                                );
+                            };
+
 
                         const deleteButton =
                             document.createElement(
                                 "button"
                             );
 
+
                         deleteButton.className =
                             "delete-conversation";
+
 
                         deleteButton.textContent =
                             "✕";
 
+
                         deleteButton.title =
                             "Delete conversation";
 
+
+                        deleteButton.setAttribute(
+                            "aria-label",
+                            "Delete conversation"
+                        );
+
+
                         deleteButton.onclick =
                             async function(event) {
+
                                 event.stopPropagation();
+
 
                                 await deleteConversation(
                                     conversation.id
                                 );
                             };
 
-                        item.appendChild(name);
 
-                        item.appendChild(
+                        actions.appendChild(
+                            renameButton
+                        );
+
+
+                        actions.appendChild(
                             deleteButton
                         );
 
+
+                        item.appendChild(
+                            name
+                        );
+
+
+                        item.appendChild(
+                            actions
+                        );
+
+
                         item.onclick =
                             function() {
+
                                 openConversation(
                                     conversation.id,
                                     conversation.title
                                 );
                             };
 
-                        list.appendChild(item);
+
+                        list.appendChild(
+                            item
+                        );
                     }
                 );
 
+
             } catch (error) {
+
                 console.error(
                     "Conversation error:",
                     error
@@ -1557,57 +3205,166 @@
             }
         }
 
+
         /* =========================================================
-           NEW CHAT
-        ========================================================= */
+           RENAME CONVERSATION
+        ========================================================== */
 
-        function newChat() {
-            currentConversationId = null;
+        async function renameConversation(
+            conversationId,
+            currentTitle
+        ) {
 
-            document
-                .getElementById("topTitle")
-                .textContent = "JeffAI";
-
-            const messages =
-                document.getElementById(
-                    "messages"
+            const newTitle =
+                prompt(
+                    "Enter a new name for this conversation:",
+                    currentTitle ||
+                    "New conversation"
                 );
 
-            messages.innerHTML = `
-                <div
-                    class="welcome"
-                    id="welcome"
-                >
-                    <div class="welcome-logo">
-                        J
-                    </div>
 
-                    <h1>
-                        How can I help you?
-                    </h1>
+            if (newTitle === null) {
+                return;
+            }
 
-                    <p>
-                        I'm JeffAI, your personal AI assistant.
-                        Ask me questions, learn something new,
-                        write, code, research, or upload a document
-                        for me to help you understand.
-                    </p>
-                </div>
-            `;
+
+            const trimmedTitle =
+                newTitle.trim();
+
+
+            if (!trimmedTitle) {
+
+                alert(
+                    "Conversation name cannot be empty."
+                );
+
+                return;
+            }
+
+
+            if (trimmedTitle.length > 100) {
+
+                alert(
+                    "Conversation name cannot be longer than 100 characters."
+                );
+
+                return;
+            }
+
+
+            try {
+
+                const token =
+                    await getToken();
+
+
+                const response =
+                    await fetch(
+                        `/api/conversations/${conversationId}`,
+                        {
+                            method: "PATCH",
+
+                            headers: {
+                                "Authorization":
+                                    `Bearer ${token}`,
+
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    title:
+                                        trimmedTitle
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.success) {
+
+                    alert(
+                        data.error ||
+                        "Could not rename conversation."
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    conversationId ===
+                    currentConversationId
+                ) {
+
+                    getElement("topTitle")
+                        .textContent =
+                        trimmedTitle;
+                }
+
+
+                await loadConversations();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Rename conversation error:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to rename conversation."
+                );
+            }
+        }
+
+
+        /* =========================================================
+           NEW CHAT
+        ========================================================== */
+
+        function newChat() {
+
+            stopSpeaking();
+
+            currentConversationId =
+                null;
+
+
+            getElement("topTitle")
+                .textContent =
+                "JeffAI";
+
+
+            showWelcome();
+
+            getElement("messageInput")
+                .focus();
+
 
             loadConversations();
+
             closeSidebar();
         }
 
+
         /* =========================================================
            CREATE CONVERSATION
-        ========================================================= */
+        ========================================================== */
 
         async function createConversation(
             firstMessage
         ) {
+
             const token =
                 await getToken();
+
 
             const response =
                 await fetch(
@@ -1630,44 +3387,57 @@
                                         .trim()
                                         .slice(0, 50)
                             })
-                    }
-                );
+                        }
+                    );
+
 
             const data =
                 await response.json();
 
+
             if (!data.success) {
+
                 throw new Error(
                     data.error ||
                     "Could not create conversation."
                 );
             }
 
+
             currentConversationId =
                 data.conversation.id;
+
 
             return data.conversation;
         }
 
+
         /* =========================================================
            OPEN CONVERSATION
-        ========================================================= */
+        ========================================================== */
 
         async function openConversation(
             conversationId,
             title
         ) {
+
             try {
+
+                stopSpeaking();
+
+
                 currentConversationId =
                     conversationId;
 
-                document
-                    .getElementById("topTitle")
+
+                getElement("topTitle")
                     .textContent =
                     title || "JeffAI";
 
+
                 const token =
                     await getToken();
+
 
                 const response =
                     await fetch(
@@ -1680,10 +3450,13 @@
                         }
                     );
 
+
                 const data =
                     await response.json();
 
+
                 if (!data.success) {
+
                     alert(
                         data.error ||
                         "Could not load conversation."
@@ -1692,35 +3465,52 @@
                     return;
                 }
 
+
                 const messages =
-                    document.getElementById(
-                        "messages"
-                    );
+                    getElement("messages");
+
 
                 messages.innerHTML = "";
+
 
                 if (
                     !data.messages ||
                     data.messages.length === 0
                 ) {
+
                     showWelcome();
+
                 } else {
+
                     data.messages.forEach(
                         message => {
+
                             addMessage(
                                 message.role,
-                                message.content
+                                message.content,
+                                {
+                                    autoSpeak: false
+                                }
                             );
                         }
                     );
                 }
 
-                loadConversations();
+
+                await loadConversations();
+
                 scrollToBottom();
+
                 closeSidebar();
 
+
             } catch (error) {
-                console.error(error);
+
+                console.error(
+                    "Open conversation error:",
+                    error
+                );
+
 
                 alert(
                     "Unable to load conversation."
@@ -1728,25 +3518,31 @@
             }
         }
 
+
         /* =========================================================
            DELETE CONVERSATION
-        ========================================================= */
+        ========================================================== */
 
         async function deleteConversation(
             conversationId
         ) {
+
             const confirmed =
                 confirm(
                     "Delete this conversation?"
                 );
 
+
             if (!confirmed) {
                 return;
             }
 
+
             try {
+
                 const token =
                     await getToken();
+
 
                 const response =
                     await fetch(
@@ -1761,10 +3557,13 @@
                         }
                     );
 
+
                 const data =
                     await response.json();
 
+
                 if (!data.success) {
+
                     alert(
                         data.error ||
                         "Could not delete conversation."
@@ -1773,17 +3572,27 @@
                     return;
                 }
 
+
                 if (
                     conversationId ===
                     currentConversationId
                 ) {
+
                     newChat();
+
                 } else {
-                    loadConversations();
+
+                    await loadConversations();
                 }
 
+
             } catch (error) {
-                console.error(error);
+
+                console.error(
+                    "Delete conversation error:",
+                    error
+                );
+
 
                 alert(
                     "Unable to delete conversation."
@@ -1791,18 +3600,20 @@
             }
         }
 
+
         /* =========================================================
            SHOW WELCOME
-        ========================================================= */
+        ========================================================== */
 
         function showWelcome() {
-            document
-                .getElementById("messages")
+
+            getElement("messages")
                 .innerHTML = `
                     <div
                         class="welcome"
                         id="welcome"
                     >
+
                         <div class="welcome-logo">
                             J
                         </div>
@@ -1817,128 +3628,1190 @@
                             write, code, research, or upload a document
                             for me to help you understand.
                         </p>
+
                     </div>
                 `;
         }
 
+
         /* =========================================================
            ADD MESSAGE
-        ========================================================= */
+        ========================================================== */
 
         function addMessage(
             role,
-            text
+            text,
+            options = {}
         ) {
+
             const welcome =
-                document.getElementById(
-                    "welcome"
-                );
+                getElement("welcome");
+
 
             if (welcome) {
                 welcome.remove();
             }
 
+
             const messages =
-                document.getElementById(
-                    "messages"
-                );
+                getElement("messages");
+
 
             const message =
                 document.createElement(
                     "div"
                 );
 
+
             message.className =
                 `message ${role}`;
+
 
             const avatar =
                 document.createElement(
                     "div"
                 );
 
+
             avatar.className =
                 "message-avatar";
+
 
             avatar.textContent =
                 role === "user"
                     ? "You"
                     : "J";
 
+
             const content =
                 document.createElement(
                     "div"
                 );
 
+
             content.className =
                 "message-content";
+
 
             const roleLabel =
                 document.createElement(
                     "div"
                 );
 
+
             roleLabel.className =
                 "message-role";
+
 
             roleLabel.textContent =
                 role === "user"
                     ? "You"
                     : "JeffAI";
 
+
             const textElement =
                 document.createElement(
                     "div"
                 );
 
+
             textElement.className =
                 "message-text";
 
+
             textElement.textContent =
                 text;
+
 
             content.appendChild(
                 roleLabel
             );
 
+
             content.appendChild(
                 textElement
             );
+
+
+            /*
+             * Add speaker button only
+             * to JeffAI responses.
+             */
+
+            if (role === "assistant") {
+
+                const actions =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                actions.className =
+                    "assistant-message-actions";
+
+
+                const speakButton =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                speakButton.type =
+                    "button";
+
+
+                speakButton.className =
+                    "speak-button";
+
+
+                speakButton.textContent =
+                    "🔊";
+
+
+                speakButton.title =
+                    "Read response aloud";
+
+
+                speakButton.setAttribute(
+                    "aria-label",
+                    "Read response aloud"
+                );
+
+
+                speakButton.onclick =
+                    function() {
+
+                        speakAssistantMessage(
+                            text,
+                            speakButton
+                        );
+                    };
+
+
+                actions.appendChild(
+                    speakButton
+                );
+
+
+                content.appendChild(
+                    actions
+                );
+            }
+
 
             message.appendChild(
                 avatar
             );
 
+
             message.appendChild(
                 content
             );
+
 
             messages.appendChild(
                 message
             );
 
+
             scrollToBottom();
+
+
+            /*
+             * Automatically speak only when
+             * explicitly requested by the caller.
+             */
+
+            if (
+                role === "assistant" &&
+                options.autoSpeak === true
+            ) {
+
+                setTimeout(
+                    function() {
+
+                        if (
+                            isVoiceEnabled() &&
+                            isAutoVoiceEnabled()
+                        ) {
+
+                            speakAssistantMessage(
+                                text,
+                                null
+                            );
+                        }
+
+                    },
+                    100
+                );
+            }
         }
+
+
+        /* =========================================================
+           VOICE RESPONSE SUPPORT CHECK
+        ========================================================== */
+
+        function supportsSpeechSynthesis() {
+
+            return (
+                "speechSynthesis" in window &&
+                "SpeechSynthesisUtterance" in window
+            );
+        }
+
+
+        /* =========================================================
+           CHECK VOICE SETTING
+        ========================================================== */
+
+        function isVoiceEnabled() {
+
+            return (
+                getSetting(
+                    SETTINGS_KEYS.voiceEnabled,
+                    "true"
+                ) === "true"
+            );
+        }
+
+
+        function isAutoVoiceEnabled() {
+
+            return (
+                getSetting(
+                    SETTINGS_KEYS.autoVoice,
+                    "false"
+                ) === "true"
+            );
+        }
+
+
+        /* =========================================================
+           GET SPEECH RATE
+        ========================================================== */
+
+        function getSpeechRate() {
+
+            const rate =
+                parseFloat(
+                    getSetting(
+                        SETTINGS_KEYS.speechRate,
+                        "1"
+                    )
+                );
+
+
+            if (
+                Number.isNaN(rate)
+            ) {
+
+                return 1;
+            }
+
+
+            return Math.min(
+                2,
+                Math.max(
+                    0.5,
+                    rate
+                )
+            );
+        }
+
+
+        /* =========================================================
+           STOP SPEAKING
+        ========================================================== */
+
+        function stopSpeaking() {
+
+            if (
+                supportsSpeechSynthesis()
+            ) {
+
+                window.speechSynthesis.cancel();
+            }
+
+
+            if (
+                currentSpeakingButton
+            ) {
+
+                currentSpeakingButton
+                    .classList.remove(
+                        "speaking"
+                    );
+
+
+                currentSpeakingButton
+                    .textContent =
+                    "🔊";
+
+
+                currentSpeakingButton
+                    .title =
+                    "Read response aloud";
+
+
+                currentSpeakingButton
+                    .setAttribute(
+                        "aria-label",
+                        "Read response aloud"
+                    );
+            }
+
+
+            currentSpeakingButton =
+                null;
+
+
+            currentSpeechText =
+                "";
+        }
+
+
+        /* =========================================================
+           LOAD BROWSER VOICES
+        ========================================================== */
+
+        function loadSpeechVoices() {
+
+            const select =
+                getElement(
+                    "voiceSelect"
+                );
+
+
+            if (!select) {
+                return;
+            }
+
+
+            if (
+                !supportsSpeechSynthesis()
+            ) {
+
+                select.innerHTML = `
+                    <option value="">
+                        Voice unavailable
+                    </option>
+                `;
+
+                select.disabled = true;
+
+                return;
+            }
+
+
+            const voices =
+                window.speechSynthesis
+                    .getVoices();
+
+
+            const savedVoice =
+                getSetting(
+                    SETTINGS_KEYS.voiceName,
+                    ""
+                );
+
+
+            select.innerHTML = `
+                <option value="">
+                    Default voice
+                </option>
+            `;
+
+
+            voices
+                .filter(
+                    voice =>
+                        voice.lang
+                            .toLowerCase()
+                            .startsWith("en")
+                )
+                .forEach(
+                    voice => {
+
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+
+                        option.value =
+                            voice.name;
+
+
+                        option.textContent =
+                            `${voice.name} (${voice.lang})`;
+
+
+                        select.appendChild(
+                            option
+                        );
+                    }
+                );
+
+
+            if (savedVoice) {
+
+                const matchingOption =
+                    Array.from(
+                        select.options
+                    ).find(
+                        option =>
+                            option.value ===
+                            savedVoice
+                    );
+
+
+                if (matchingOption) {
+
+                    select.value =
+                        savedVoice;
+                }
+            }
+        }
+
+
+        /* =========================================================
+           SPEAK ASSISTANT MESSAGE
+        ========================================================== */
+
+        function speakAssistantMessage(
+            text,
+            button
+        ) {
+
+            if (
+                !supportsSpeechSynthesis()
+            ) {
+
+                alert(
+                    "AI voice responses are not supported by this browser."
+                );
+
+                return;
+            }
+
+
+            if (!text || !text.trim()) {
+                return;
+            }
+
+
+            /*
+             * If the same button is already
+             * speaking, clicking it stops speech.
+             */
+
+            if (
+                button &&
+                currentSpeakingButton === button
+            ) {
+
+                stopSpeaking();
+
+                return;
+            }
+
+
+            stopSpeaking();
+
+
+            const utterance =
+                new SpeechSynthesisUtterance(
+                    text
+                );
+
+
+            const savedVoiceName =
+                getSetting(
+                    SETTINGS_KEYS.voiceName,
+                    ""
+                );
+
+
+            const voices =
+                window.speechSynthesis
+                    .getVoices();
+
+
+            if (savedVoiceName) {
+
+                const selectedVoice =
+                    voices.find(
+                        voice =>
+                            voice.name ===
+                            savedVoiceName
+                    );
+
+
+                if (selectedVoice) {
+
+                    utterance.voice =
+                        selectedVoice;
+
+                    utterance.lang =
+                        selectedVoice.lang;
+                }
+            }
+
+
+            utterance.rate =
+                getSpeechRate();
+
+
+            utterance.pitch =
+                1;
+
+
+            currentSpeakingButton =
+                button;
+
+
+            currentSpeechText =
+                text;
+
+
+            if (button) {
+
+                button.classList.add(
+                    "speaking"
+                );
+
+
+                button.textContent =
+                    "⏹️";
+
+
+                button.title =
+                    "Stop speaking";
+
+
+                button.setAttribute(
+                    "aria-label",
+                    "Stop speaking"
+                );
+            }
+
+
+            utterance.onend =
+                function() {
+
+                    finishSpeechButton(
+                        button
+                    );
+                };
+
+
+            utterance.onerror =
+                function(event) {
+
+                    console.error(
+                        "Speech synthesis error:",
+                        event
+                    );
+
+
+                    finishSpeechButton(
+                        button
+                    );
+                };
+
+
+            window.speechSynthesis
+                .speak(
+                    utterance
+                );
+        }
+
+
+        /* =========================================================
+           FINISH SPEECH BUTTON
+        ========================================================== */
+
+        function finishSpeechButton(
+            button
+        ) {
+
+            if (button) {
+
+                button.classList.remove(
+                    "speaking"
+                );
+
+
+                button.textContent =
+                    "🔊";
+
+
+                button.title =
+                    "Read response aloud";
+
+
+                button.setAttribute(
+                    "aria-label",
+                    "Read response aloud"
+                );
+            }
+
+
+            if (
+                currentSpeakingButton ===
+                button
+            ) {
+
+                currentSpeakingButton =
+                    null;
+
+
+                currentSpeechText =
+                    "";
+            }
+        }
+
+
+        /* =========================================================
+           SETTINGS PANEL
+        ========================================================== */
+
+        function openSettings() {
+
+            const overlay =
+                getElement(
+                    "settingsOverlay"
+                );
+
+
+            if (!overlay) {
+                return;
+            }
+
+
+            syncSettingsUI();
+
+
+            overlay.classList.add(
+                "open"
+            );
+
+
+            overlay.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+
+            closeSidebar();
+        }
+
+
+        function closeSettings() {
+
+            const overlay =
+                getElement(
+                    "settingsOverlay"
+                );
+
+
+            if (!overlay) {
+                return;
+            }
+
+
+            overlay.classList.remove(
+                "open"
+            );
+
+
+            overlay.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+        }
+
+
+        /* =========================================================
+           SYNC SETTINGS UI
+        ========================================================== */
+
+        function syncSettingsUI() {
+
+            const voiceEnabled =
+                getElement(
+                    "voiceEnabledSetting"
+                );
+
+
+            const autoVoice =
+                getElement(
+                    "autoVoiceSetting"
+                );
+
+
+            const voiceSelect =
+                getElement(
+                    "voiceSelect"
+                );
+
+
+            const speechRate =
+                getElement(
+                    "speechRateSetting"
+                );
+
+
+            const speechRateValue =
+                getElement(
+                    "speechRateValue"
+                );
+
+
+            const themeSetting =
+                getElement(
+                    "themeSetting"
+                );
+
+
+            const enterToSend =
+                getElement(
+                    "enterToSendSetting"
+                );
+
+
+            if (voiceEnabled) {
+
+                voiceEnabled.checked =
+                    isVoiceEnabled();
+            }
+
+
+            if (autoVoice) {
+
+                autoVoice.checked =
+                    isAutoVoiceEnabled();
+
+                autoVoice.disabled =
+                    !isVoiceEnabled();
+            }
+
+
+            if (speechRate) {
+
+                const rate =
+                    getSpeechRate();
+
+
+                speechRate.value =
+                    rate;
+            }
+
+
+            if (speechRateValue) {
+
+                speechRateValue.textContent =
+                    `${getSpeechRate().toFixed(1)}x`;
+            }
+
+
+            if (themeSetting) {
+
+                themeSetting.value =
+                    getSetting(
+                        SETTINGS_KEYS.theme,
+                        "light"
+                    );
+            }
+
+
+            if (enterToSend) {
+
+                enterToSend.checked =
+                    getSetting(
+                        SETTINGS_KEYS.enterToSend,
+                        "true"
+                    ) === "true";
+            }
+
+
+            loadSpeechVoices();
+
+
+            if (voiceSelect) {
+
+                const savedVoice =
+                    getSetting(
+                        SETTINGS_KEYS.voiceName,
+                        ""
+                    );
+
+
+                voiceSelect.value =
+                    savedVoice;
+            }
+        }
+
+
+        /* =========================================================
+           SETTINGS EVENTS
+        ========================================================== */
+
+        function setupSettings() {
+
+            const settingsButton =
+                getElement(
+                    "settingsButton"
+                );
+
+
+            const closeButton =
+                getElement(
+                    "settingsCloseButton"
+                );
+
+
+            const overlay =
+                getElement(
+                    "settingsOverlay"
+                );
+
+
+            const voiceEnabled =
+                getElement(
+                    "voiceEnabledSetting"
+                );
+
+
+            const autoVoice =
+                getElement(
+                    "autoVoiceSetting"
+                );
+
+
+            const voiceSelect =
+                getElement(
+                    "voiceSelect"
+                );
+
+
+            const speechRate =
+                getElement(
+                    "speechRateSetting"
+                );
+
+
+            const speechRateValue =
+                getElement(
+                    "speechRateValue"
+                );
+
+
+            const themeSetting =
+                getElement(
+                    "themeSetting"
+                );
+
+
+            const enterToSend =
+                getElement(
+                    "enterToSendSetting"
+                );
+
+
+            if (settingsButton) {
+
+                settingsButton.addEventListener(
+                    "click",
+                    openSettings
+                );
+            }
+
+
+            if (closeButton) {
+
+                closeButton.addEventListener(
+                    "click",
+                    closeSettings
+                );
+            }
+
+
+            /*
+             * Clicking the dark background
+             * closes settings.
+             */
+
+            if (overlay) {
+
+                overlay.addEventListener(
+                    "click",
+                    function(event) {
+
+                        if (
+                            event.target ===
+                            overlay
+                        ) {
+
+                            closeSettings();
+                        }
+                    }
+                );
+            }
+
+
+            /*
+             * Escape closes settings.
+             */
+
+            document.addEventListener(
+                "keydown",
+                function(event) {
+
+                    if (
+                        event.key === "Escape"
+                    ) {
+
+                        closeSettings();
+                    }
+                }
+            );
+
+
+            /*
+             * Voice enabled.
+             */
+
+            if (voiceEnabled) {
+
+                voiceEnabled.addEventListener(
+                    "change",
+                    function() {
+
+                        setSetting(
+                            SETTINGS_KEYS.voiceEnabled,
+                            this.checked
+                                ? "true"
+                                : "false"
+                        );
+
+
+                        if (!this.checked) {
+
+                            stopSpeaking();
+                        }
+
+
+                        if (autoVoice) {
+
+                            autoVoice.disabled =
+                                !this.checked;
+                        }
+                    }
+                );
+            }
+
+
+            /*
+             * Auto voice.
+             */
+
+            if (autoVoice) {
+
+                autoVoice.addEventListener(
+                    "change",
+                    function() {
+
+                        setSetting(
+                            SETTINGS_KEYS.autoVoice,
+                            this.checked
+                                ? "true"
+                                : "false"
+                        );
+                    }
+                );
+            }
+
+
+            /*
+             * Voice selection.
+             */
+
+            if (voiceSelect) {
+
+                voiceSelect.addEventListener(
+                    "change",
+                    function() {
+
+                        setSetting(
+                            SETTINGS_KEYS.voiceName,
+                            this.value
+                        );
+                    }
+                );
+            }
+
+
+            /*
+             * Speech rate.
+             */
+
+            if (speechRate) {
+
+                speechRate.addEventListener(
+                    "input",
+                    function() {
+
+                        const value =
+                            parseFloat(
+                                this.value
+                            );
+
+
+                        setSetting(
+                            SETTINGS_KEYS.speechRate,
+                            value
+                        );
+
+
+                        if (speechRateValue) {
+
+                            speechRateValue.textContent =
+                                `${value.toFixed(1)}x`;
+                        }
+                    }
+                );
+            }
+
+
+            /*
+             * Theme.
+             */
+
+            if (themeSetting) {
+
+                themeSetting.addEventListener(
+                    "change",
+                    function() {
+
+                        setSetting(
+                            SETTINGS_KEYS.theme,
+                            this.value
+                        );
+
+
+                        applyTheme();
+                    }
+                );
+            }
+
+
+            /*
+             * Enter to send.
+             */
+
+            if (enterToSend) {
+
+                enterToSend.addEventListener(
+                    "change",
+                    function() {
+
+                        setSetting(
+                            SETTINGS_KEYS.enterToSend,
+                            this.checked
+                                ? "true"
+                                : "false"
+                        );
+
+
+                        updateInputHint();
+                    }
+                );
+            }
+
+
+            /*
+             * Browser voices can load
+             * asynchronously.
+             */
+
+            if (
+                supportsSpeechSynthesis()
+            ) {
+
+                window.speechSynthesis
+                    .addEventListener(
+                        "voiceschanged",
+                        loadSpeechVoices
+                    );
+            }
+        }
+
+
+        /* =========================================================
+           UPDATE INPUT HINT
+        ========================================================== */
+
+        function updateInputHint() {
+
+            const hint =
+                getElement(
+                    "inputHintText"
+                );
+
+
+            if (!hint) {
+                return;
+            }
+
+
+            const enterToSend =
+                getSetting(
+                    SETTINGS_KEYS.enterToSend,
+                    "true"
+                ) === "true";
+
+
+            if (enterToSend) {
+
+                hint.textContent =
+                    "Enter to send • Shift + Enter for a new line";
+
+            } else {
+
+                hint.textContent =
+                    "Enter for a new line • Use the send button to send";
+            }
+        }
+
 
         /* =========================================================
            TYPING INDICATOR
-        ========================================================= */
+        ========================================================== */
 
         function showTyping() {
+
+            removeTyping();
+
+
             const messages =
-                document.getElementById(
-                    "messages"
-                );
+                getElement("messages");
+
 
             const typing =
                 document.createElement(
                     "div"
                 );
 
+
             typing.id =
                 "typingMessage";
 
+
             typing.className =
                 "message assistant";
+
 
             typing.innerHTML = `
                 <div class="message-avatar">
@@ -1952,110 +4825,594 @@
                     </div>
 
                     <div class="typing">
+
                         <span></span>
                         <span></span>
                         <span></span>
+
                     </div>
 
                 </div>
             `;
 
+
             messages.appendChild(
                 typing
             );
 
+
             scrollToBottom();
         }
 
+
         /* =========================================================
            REMOVE TYPING
-        ========================================================= */
+        ========================================================== */
 
         function removeTyping() {
+
             const typing =
-                document.getElementById(
+                getElement(
                     "typingMessage"
                 );
+
 
             if (typing) {
                 typing.remove();
             }
         }
 
+
+        /* =========================================================
+           VOICE INPUT SETUP
+        ========================================================== */
+
+        function setupVoiceInput() {
+
+            const voiceButton =
+                getElement("voiceButton");
+
+
+            const messageInput =
+                getElement("messageInput");
+
+
+            const voiceStatus =
+                getElement("voiceStatus");
+
+
+            if (
+                !voiceButton ||
+                !messageInput
+            ) {
+                return;
+            }
+
+
+            /*
+             * Different browsers use different
+             * names for the Speech Recognition API.
+             */
+
+            const SpeechRecognition =
+                window.SpeechRecognition ||
+                window.webkitSpeechRecognition;
+
+
+            /*
+             * Browser does not support voice input.
+             */
+
+            if (!SpeechRecognition) {
+
+                voiceButton.disabled =
+                    true;
+
+
+                voiceButton.textContent =
+                    "🚫";
+
+
+                voiceButton.title =
+                    "Voice input is not supported in this browser";
+
+
+                voiceButton.setAttribute(
+                    "aria-label",
+                    "Voice input is not supported"
+                );
+
+
+                if (voiceStatus) {
+
+                    voiceStatus.textContent =
+                        "Voice input is not supported by this browser.";
+
+                    voiceStatus.classList.add(
+                        "active"
+                    );
+                }
+
+
+                return;
+            }
+
+
+            recognition =
+                new SpeechRecognition();
+
+
+            recognition.continuous =
+                false;
+
+
+            recognition.interimResults =
+                true;
+
+
+            recognition.maxAlternatives =
+                1;
+
+
+            recognition.lang =
+                "en-US";
+
+
+            /* =====================================================
+               RECOGNITION START
+            ====================================================== */
+
+            recognition.onstart =
+                function() {
+
+                    isListening =
+                        true;
+
+
+                    voiceBaseText =
+                        messageInput.value.trim();
+
+
+                    finalVoiceTranscript =
+                        "";
+
+
+                    voiceButton.classList.add(
+                        "listening"
+                    );
+
+
+                    voiceButton.textContent =
+                        "🛑";
+
+
+                    voiceButton.title =
+                        "Stop listening";
+
+
+                    voiceButton.setAttribute(
+                        "aria-label",
+                        "Stop listening"
+                    );
+
+
+                    voiceButton.setAttribute(
+                        "aria-pressed",
+                        "true"
+                    );
+
+
+                    messageInput.placeholder =
+                        "Listening...";
+
+
+                    if (voiceStatus) {
+
+                        voiceStatus.textContent =
+                            "🎤 Listening... Speak now";
+
+                        voiceStatus.classList.add(
+                            "active"
+                        );
+                    }
+                };
+
+
+            /* =====================================================
+               RECOGNITION RESULT
+            ====================================================== */
+
+            recognition.onresult =
+                function(event) {
+
+                    let interimTranscript =
+                        "";
+
+
+                    for (
+                        let i = event.resultIndex;
+                        i < event.results.length;
+                        i++
+                    ) {
+
+                        const result =
+                            event.results[i];
+
+
+                        const transcript =
+                            result[0]
+                                .transcript;
+
+
+                        if (
+                            result.isFinal
+                        ) {
+
+                            finalVoiceTranscript +=
+                                transcript;
+
+                        } else {
+
+                            interimTranscript +=
+                                transcript;
+                        }
+                    }
+
+
+                    const voiceText =
+                        (
+                            finalVoiceTranscript +
+                            interimTranscript
+                        ).trim();
+
+
+                    const prefix =
+                        voiceBaseText
+                            ? voiceBaseText + " "
+                            : "";
+
+
+                    messageInput.value =
+                        (
+                            prefix +
+                            voiceText
+                        ).trim();
+
+
+                    autoResizeTextarea();
+
+                    updateCharacterCount();
+                };
+
+
+            /* =====================================================
+               RECOGNITION ERROR
+            ====================================================== */
+
+            recognition.onerror =
+                function(event) {
+
+                    console.error(
+                        "Voice recognition error:",
+                        event.error
+                    );
+
+
+                    if (
+                        event.error ===
+                        "not-allowed" ||
+                        event.error ===
+                        "service-not-allowed"
+                    ) {
+
+                        alert(
+                            "Microphone access was denied. Please allow microphone permission in your browser and try again."
+                        );
+
+                    } else if (
+                        event.error ===
+                        "no-speech"
+                    ) {
+
+                        if (voiceStatus) {
+
+                            voiceStatus.textContent =
+                                "No speech detected.";
+                        }
+
+                    } else if (
+                        event.error ===
+                        "audio-capture"
+                    ) {
+
+                        alert(
+                            "No microphone was detected. Please check your microphone."
+                        );
+
+                    } else if (
+                        event.error !==
+                        "aborted"
+                    ) {
+
+                        alert(
+                            "Voice input could not start. Please try again."
+                        );
+                    }
+                };
+
+
+            /* =====================================================
+               RECOGNITION END
+            ====================================================== */
+
+            recognition.onend =
+                function() {
+
+                    finishVoiceInput();
+                };
+
+
+            /* =====================================================
+               BUTTON
+            ====================================================== */
+
+            voiceButton.addEventListener(
+                "click",
+                function() {
+
+                    if (isListening) {
+
+                        stopVoiceInput();
+
+                    } else {
+
+                        startVoiceInput();
+                    }
+                }
+            );
+        }
+
+
+        /* =========================================================
+           START VOICE INPUT
+        ========================================================== */
+
+        function startVoiceInput() {
+
+            if (!recognition) {
+                return;
+            }
+
+
+            if (isListening) {
+                return;
+            }
+
+
+            try {
+
+                recognition.start();
+
+            } catch (error) {
+
+                console.error(
+                    "Could not start voice input:",
+                    error
+                );
+            }
+        }
+
+
+        /* =========================================================
+           STOP VOICE INPUT
+        ========================================================== */
+
+        function stopVoiceInput() {
+
+            if (!recognition) {
+                return;
+            }
+
+
+            try {
+
+                recognition.stop();
+
+            } catch (error) {
+
+                console.log(
+                    "Voice recognition already stopped."
+                );
+
+
+                finishVoiceInput();
+            }
+        }
+
+
+        /* =========================================================
+           FINISH VOICE INPUT
+        ========================================================== */
+
+        function finishVoiceInput() {
+
+            isListening =
+                false;
+
+
+            const voiceButton =
+                getElement("voiceButton");
+
+
+            const messageInput =
+                getElement("messageInput");
+
+
+            const voiceStatus =
+                getElement("voiceStatus");
+
+
+            if (voiceButton) {
+
+                voiceButton.classList.remove(
+                    "listening"
+                );
+
+
+                voiceButton.textContent =
+                    "🎤";
+
+
+                voiceButton.title =
+                    "Voice input";
+
+
+                voiceButton.setAttribute(
+                    "aria-label",
+                    "Voice input"
+                );
+
+
+                voiceButton.setAttribute(
+                    "aria-pressed",
+                    "false"
+                );
+            }
+
+
+            if (messageInput) {
+
+                messageInput.placeholder =
+                    "Message JeffAI...";
+            }
+
+
+            if (voiceStatus) {
+
+                if (
+                    finalVoiceTranscript
+                        .trim()
+                ) {
+
+                    voiceStatus.textContent =
+                        "✓ Voice input added to your message";
+
+                } else {
+
+                    voiceStatus.textContent =
+                        "";
+                }
+
+
+                setTimeout(
+                    function() {
+
+                        voiceStatus.classList.remove(
+                            "active"
+                        );
+
+                    },
+                    2500
+                );
+            }
+
+
+            updateCharacterCount();
+        }
+
+
         /* =========================================================
            SEND MESSAGE
-        ========================================================= */
+        ========================================================== */
 
-        document
-            .getElementById("chatForm")
+        getElement("chatForm")
             .addEventListener(
                 "submit",
                 async function(event) {
 
                     event.preventDefault();
 
+
                     const input =
-                        document.getElementById(
+                        getElement(
                             "messageInput"
                         );
 
+
                     const sendButton =
-                        document.getElementById(
+                        getElement(
                             "sendButton"
                         );
 
+
                     const message =
                         input.value.trim();
+
 
                     if (!message) {
                         return;
                     }
 
-                    input.value = "";
-                    input.style.height = "auto";
 
-                    /*
-                     * Add the user's message
-                     * immediately.
-                     */
+                    if (isListening) {
+                        stopVoiceInput();
+                    }
+
+
+                    input.value = "";
+
+                    input.style.height =
+                        "auto";
+
+
+                    updateCharacterCount();
+
 
                     addMessage(
                         "user",
                         message
                     );
 
-                    sendButton.disabled = true;
+
+                    sendButton.disabled =
+                        true;
+
 
                     showTyping();
 
+
                     try {
+
                         const token =
                             await getToken();
 
+
                         /*
                          * Create a conversation
-                         * if this is a new chat.
+                         * for the first message.
                          */
 
                         if (
                             !currentConversationId
                         ) {
+
                             const conversation =
                                 await createConversation(
                                     message
                                 );
 
+
                             currentConversationId =
                                 conversation.id;
 
-                            document
-                                .getElementById(
-                                    "topTitle"
-                                )
-                                .textContent =
+
+                            getElement(
+                                "topTitle"
+                            ).textContent =
                                 conversation.title ||
                                 "JeffAI";
                         }
+
 
                         const response =
                             await fetch(
@@ -2082,12 +5439,16 @@
                                 }
                             );
 
+
                         const data =
                             await response.json();
 
+
                         removeTyping();
 
+
                         if (!data.success) {
+
                             addMessage(
                                 "assistant",
                                 data.error ||
@@ -2097,12 +5458,34 @@
                             return;
                         }
 
+
+                        if (
+                            data.conversation_id
+                        ) {
+
+                            currentConversationId =
+                                data.conversation_id;
+                        }
+
+
+                        /*
+                         * Add AI response.
+                         *
+                         * Auto voice only happens
+                         * when enabled in settings.
+                         */
+
                         addMessage(
                             "assistant",
-                            data.response
+                            data.response,
+                            {
+                                autoSpeak: true
+                            }
                         );
 
-                        loadConversations();
+
+                        await loadConversations();
+
 
                     } catch (error) {
 
@@ -2111,73 +5494,154 @@
                             error
                         );
 
+
                         removeTyping();
+
 
                         addMessage(
                             "assistant",
                             "Sorry, I couldn't connect to the server. Please try again."
                         );
 
+
                     } finally {
 
-                        sendButton.disabled = false;
+                        sendButton.disabled =
+                            false;
+
 
                         input.focus();
                     }
                 }
             );
 
+
         /* =========================================================
            ENTER TO SEND
-        ========================================================= */
+        ========================================================== */
 
-        document
-            .getElementById("messageInput")
+        getElement("messageInput")
             .addEventListener(
                 "keydown",
                 function(event) {
 
+                    const enterToSend =
+                        getSetting(
+                            SETTINGS_KEYS.enterToSend,
+                            "true"
+                        ) === "true";
+
+
                     if (
+                        enterToSend &&
                         event.key === "Enter" &&
                         !event.shiftKey
                     ) {
+
                         event.preventDefault();
 
-                        document
-                            .getElementById(
-                                "chatForm"
-                            )
-                            .requestSubmit();
+
+                        getElement(
+                            "chatForm"
+                        ).requestSubmit();
                     }
                 }
             );
 
+
         /* =========================================================
            AUTO RESIZE TEXTAREA
-        ========================================================= */
+        ========================================================== */
 
-        document
-            .getElementById("messageInput")
+        function autoResizeTextarea() {
+
+            const input =
+                getElement(
+                    "messageInput"
+                );
+
+
+            if (!input) {
+                return;
+            }
+
+
+            input.style.height =
+                "auto";
+
+
+            input.style.height =
+                Math.min(
+                    input.scrollHeight,
+                    180
+                ) + "px";
+        }
+
+
+        getElement("messageInput")
             .addEventListener(
                 "input",
                 function() {
 
-                    this.style.height = "auto";
+                    autoResizeTextarea();
 
-                    this.style.height =
-                        Math.min(
-                            this.scrollHeight,
-                            180
-                        ) + "px";
+                    updateCharacterCount();
                 }
             );
 
+
+        /* =========================================================
+           CHARACTER COUNTER
+        ========================================================== */
+
+        function updateCharacterCount() {
+
+            const input =
+                getElement(
+                    "messageInput"
+                );
+
+
+            const counter =
+                getElement(
+                    "characterCount"
+                );
+
+
+            if (
+                !input ||
+                !counter
+            ) {
+                return;
+            }
+
+
+            counter.textContent =
+                `${input.value.length.toLocaleString()} / 10,000`;
+        }
+
+
+        /* =========================================================
+           DOCUMENT UPLOAD BUTTON
+        ========================================================== */
+
+        getElement("uploadButton")
+            .addEventListener(
+                "click",
+                function() {
+
+                    getElement(
+                        "documentInput"
+                    ).click();
+                }
+            );
+
+
         /* =========================================================
            DOCUMENT UPLOAD
-        ========================================================= */
+        ========================================================== */
 
-        document
-            .getElementById("documentInput")
+        getElement("documentInput")
             .addEventListener(
                 "change",
                 async function() {
@@ -2185,14 +5649,17 @@
                     const file =
                         this.files[0];
 
+
                     if (!file) {
                         return;
                     }
 
+
                     const status =
-                        document.getElementById(
+                        getElement(
                             "uploadStatus"
                         );
+
 
                     const allowedTypes = [
                         ".pdf",
@@ -2200,8 +5667,10 @@
                         ".txt"
                     ];
 
+
                     const filename =
                         file.name.toLowerCase();
+
 
                     const valid =
                         allowedTypes.some(
@@ -2211,7 +5680,9 @@
                                 )
                         );
 
+
                     if (!valid) {
+
                         status.textContent =
                             "Only PDF, DOCX and TXT files are allowed.";
 
@@ -2220,10 +5691,12 @@
                         return;
                     }
 
+
                     if (
                         file.size >
                         10 * 1024 * 1024
                     ) {
+
                         status.textContent =
                             "File is too large. Maximum size is 10 MB.";
 
@@ -2232,20 +5705,26 @@
                         return;
                     }
 
+
                     status.textContent =
                         "Uploading...";
 
+
                     try {
+
                         const token =
                             await getToken();
 
+
                         const formData =
                             new FormData();
+
 
                         formData.append(
                             "file",
                             file
                         );
+
 
                         const response =
                             await fetch(
@@ -2263,10 +5742,13 @@
                                 }
                             );
 
+
                         const data =
                             await response.json();
 
+
                         if (!data.success) {
+
                             status.textContent =
                                 data.error ||
                                 "Upload failed.";
@@ -2274,16 +5756,21 @@
                             return;
                         }
 
+
                         status.textContent =
                             `✓ ${file.name} uploaded`;
 
+
                         setTimeout(
-                            () => {
+                            function() {
+
                                 status.textContent =
                                     "";
+
                             },
                             5000
                         );
+
 
                     } catch (error) {
 
@@ -2292,41 +5779,95 @@
                             error
                         );
 
+
                         status.textContent =
                             "Upload failed. Please try again.";
 
-                    }
+                    } finally {
 
-                    this.value = "";
+                        this.value = "";
+                    }
                 }
             );
 
+
         /* =========================================================
-           DARK / LIGHT MODE
-        ========================================================= */
+           DARK / LIGHT / SYSTEM MODE
+        ========================================================== */
+
+        function getResolvedTheme() {
+
+            const theme =
+                getSetting(
+                    SETTINGS_KEYS.theme,
+                    "light"
+                );
+
+
+            if (theme === "system") {
+
+                return window.matchMedia(
+                    "(prefers-color-scheme: dark)"
+                ).matches
+                    ? "dark"
+                    : "light";
+            }
+
+
+            return theme;
+        }
+
 
         function applyTheme() {
 
             const theme =
-                localStorage.getItem(
-                    "jeffai-theme"
-                ) || "light";
+                getSetting(
+                    SETTINGS_KEYS.theme,
+                    "light"
+                );
+
+
+            const resolvedTheme =
+                getResolvedTheme();
+
 
             const button =
-                document.getElementById(
+                getElement(
                     "themeButton"
                 );
 
-            if (theme === "dark") {
+
+            const themeColor =
+                document.querySelector(
+                    'meta[name="theme-color"]'
+                );
+
+
+            if (
+                resolvedTheme === "dark"
+            ) {
 
                 document.body.classList.add(
                     "dark"
                 );
 
+
                 if (button) {
-                    button.textContent = "☀️";
+
+                    button.textContent =
+                        "☀️";
+
                     button.title =
                         "Switch to light mode";
+                }
+
+
+                if (themeColor) {
+
+                    themeColor.setAttribute(
+                        "content",
+                        "#212121"
+                    );
                 }
 
             } else {
@@ -2335,100 +5876,330 @@
                     "dark"
                 );
 
+
                 if (button) {
-                    button.textContent = "🌙";
+
+                    button.textContent =
+                        "🌙";
+
                     button.title =
                         "Switch to dark mode";
+                }
+
+
+                if (themeColor) {
+
+                    themeColor.setAttribute(
+                        "content",
+                        "#ffffff"
+                    );
                 }
             }
         }
 
+
         function toggleTheme() {
 
-            const isDark =
-                document.body.classList.contains(
-                    "dark"
-                );
+            const currentTheme =
+                getResolvedTheme();
 
-            localStorage.setItem(
-                "jeffai-theme",
-                isDark
+
+            setSetting(
+                SETTINGS_KEYS.theme,
+                currentTheme === "dark"
                     ? "light"
                     : "dark"
             );
 
+
             applyTheme();
+
+
+            const themeSetting =
+                getElement(
+                    "themeSetting"
+                );
+
+
+            if (themeSetting) {
+
+                themeSetting.value =
+                    currentTheme === "dark"
+                        ? "light"
+                        : "dark";
+            }
         }
+
+
+        /* =========================================================
+           SYSTEM THEME CHANGES
+        ========================================================== */
+
+        const systemThemeQuery =
+            window.matchMedia(
+                "(prefers-color-scheme: dark)"
+            );
+
+
+        if (
+            systemThemeQuery.addEventListener
+        ) {
+
+            systemThemeQuery.addEventListener(
+                "change",
+                function() {
+
+                    if (
+                        getSetting(
+                            SETTINGS_KEYS.theme,
+                            "light"
+                        ) === "system"
+                    ) {
+
+                        applyTheme();
+                    }
+                }
+            );
+        }
+
 
         /* =========================================================
            MOBILE SIDEBAR
-        ========================================================= */
+        ========================================================== */
 
         function toggleSidebar() {
 
-            document
-                .getElementById("sidebar")
+            getElement("sidebar")
                 .classList.toggle(
                     "open"
                 );
         }
 
+
         function closeSidebar() {
 
-            document
-                .getElementById("sidebar")
+            getElement("sidebar")
                 .classList.remove(
                     "open"
                 );
         }
 
+
         /* =========================================================
            LOGOUT
-        ========================================================= */
+        ========================================================== */
 
         async function logout() {
 
-            await supabaseClient.auth.signOut();
+            try {
+
+                if (isListening) {
+                    stopVoiceInput();
+                }
+
+
+                stopSpeaking();
+
+
+                await supabaseClient.auth.signOut();
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+            }
+
 
             window.location.href =
                 "/login.html";
         }
 
+
         /* =========================================================
            SCROLL
-        ========================================================= */
+        ========================================================== */
 
         function scrollToBottom() {
 
             const chatArea =
-                document.getElementById(
+                getElement(
                     "chatArea"
                 );
 
+
+            if (!chatArea) {
+                return;
+            }
+
+
             setTimeout(
-                () => {
+                function() {
+
                     chatArea.scrollTop =
                         chatArea.scrollHeight;
+
                 },
                 50
             );
         }
 
+
+        /* =========================================================
+           BUTTON EVENT LISTENERS
+        ========================================================== */
+
+        getElement("newChatButton")
+            .addEventListener(
+                "click",
+                newChat
+            );
+
+
+        getElement("themeButton")
+            .addEventListener(
+                "click",
+                toggleTheme
+            );
+
+
+        getElement("mobileMenuButton")
+            .addEventListener(
+                "click",
+                toggleSidebar
+            );
+
+
+        getElement("logoutButton")
+            .addEventListener(
+                "click",
+                logout
+            );
+
+
+        /* =========================================================
+           CLOSE MOBILE SIDEBAR WHEN CLICKING MAIN
+        ========================================================== */
+
+        getElement("chatArea")
+            .addEventListener(
+                "click",
+                function() {
+
+                    if (
+                        window.innerWidth <=
+                        768
+                    ) {
+
+                        closeSidebar();
+                    }
+                }
+            );
+
+
         /* =========================================================
            INITIALIZE
-        ========================================================= */
+        ========================================================== */
 
         async function initialize() {
 
+            /*
+             * Set default settings the first
+             * time JeffAI is opened.
+             */
+
+            if (
+                localStorage.getItem(
+                    SETTINGS_KEYS.voiceEnabled
+                ) === null
+            ) {
+
+                setSetting(
+                    SETTINGS_KEYS.voiceEnabled,
+                    "true"
+                );
+            }
+
+
+            if (
+                localStorage.getItem(
+                    SETTINGS_KEYS.autoVoice
+                ) === null
+            ) {
+
+                setSetting(
+                    SETTINGS_KEYS.autoVoice,
+                    "false"
+                );
+            }
+
+
+            if (
+                localStorage.getItem(
+                    SETTINGS_KEYS.speechRate
+                ) === null
+            ) {
+
+                setSetting(
+                    SETTINGS_KEYS.speechRate,
+                    "1"
+                );
+            }
+
+
+            if (
+                localStorage.getItem(
+                    SETTINGS_KEYS.theme
+                ) === null
+            ) {
+
+                setSetting(
+                    SETTINGS_KEYS.theme,
+                    "light"
+                );
+            }
+
+
+            if (
+                localStorage.getItem(
+                    SETTINGS_KEYS.enterToSend
+                ) === null
+            ) {
+
+                setSetting(
+                    SETTINGS_KEYS.enterToSend,
+                    "true"
+                );
+            }
+
+
             applyTheme();
+
+            setupSettings();
+
+            setupVoiceInput();
+
+            updateCharacterCount();
+
+            updateInputHint();
+
+            loadSpeechVoices();
 
             await loadUser();
 
             await loadConversations();
+
+            getElement(
+                "messageInput"
+            ).focus();
         }
 
+
         initialize();
+
     </script>
 
 </body>
+
 </html>
