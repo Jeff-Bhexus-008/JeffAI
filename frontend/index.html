@@ -2772,12 +2772,7 @@
     <script>
 
         const API_BASE =
-            window.location.protocol === "capacitor:"
-                ? "https://jeffai-pwit.onrender.com"
-                : "";
-
-        const API_BASE =
-            window.location.protocol === "capacitor:"
+            window.location.hostname === "localhost"
                 ? "https://jeffai-pwit.onrender.com"
                 : "";
 
