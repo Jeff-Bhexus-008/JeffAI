@@ -58,6 +58,15 @@ def config():
         "config.js"
     )
 
+@app.route("/downloads/<path:filename>")
+def download_apk(filename):
+
+    return send_from_directory(
+        "../frontend/downloads",
+        filename,
+        as_attachment=True
+    )
+
 
 @app.route("/api/health")
 def health():
