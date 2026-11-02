@@ -4,23 +4,13 @@
    ========================================================= */
 
 import { renderMarkdown, copyText, escapeHtml, plainText } from "./markdown.js";
+import { API_BASE, ConfigError, resolveSupabaseConfig } from "./env.js";
 
 /* ---------------------------------------------------------
    ENVIRONMENT
    --------------------------------------------------------- */
 
-const REMOTE_API = "https://jeffai-pwit.onrender.com";
-
-/* The Android/Capacitor shell loads the bundled frontend from a local
-   origin, so it has to talk to the deployed backend. Anything served
-   over http(s) - Render, local Flask, a preview server - talks to its
-   own origin. */
-const NATIVE_SHELL =
-    window.location.protocol === "capacitor:" ||
-    window.location.protocol === "file:" ||
-    (window.location.hostname === "localhost" && !window.location.port);
-
-const API_BASE = window.JEFFAI_API_BASE ?? (NATIVE_SHELL ? REMOTE_API : "");
+/* API base and Supabase project resolution live in ./env.js */
 
 const STORAGE = {
     theme: "jeffai:theme",
@@ -321,11 +311,23 @@ async function ensureLibs() {
     return Boolean(window.supabase);
 }
 
-function initSupabase() {
-    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-        throw new Error("Supabase configuration is missing (config.js).");
-    }
-    supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+async function initSupabase() {
+    const config = await resolveSupabaseConfig();
+    supabase = window.supabase.createClient(config.url, config.key);
+    return config;
+}
+
+function renderConfigError(message) {
+    $("#messages").innerHTML = `
+        <div class="empty">
+            <span class="empty-icon">${icon("alert", 21)}</span>
+            <strong>JeffAI is not configured</strong>
+            <span>${escapeHtml(message)}</span>
+            <span style="margin-top:6px">
+                Check <a href="/api/config" target="_blank" rel="noopener">/api/config</a>
+                and <a href="/api/health" target="_blank" rel="noopener">/api/health</a>.
+            </span>
+        </div>`;
 }
 
 async function ensureSession(force = false) {
@@ -3030,9 +3032,11 @@ async function init() {
     }
 
     try {
-        initSupabase();
+        await initSupabase();
     } catch (error) {
-        toast(normalizeError(error), "error", 8000);
+        console.error("[JeffAI] configuration problem", error);
+        renderConfigError(normalizeError(error));
+        toast("JeffAI is not configured. See the message in the chat area.", "error", 8000);
         return;
     }
 

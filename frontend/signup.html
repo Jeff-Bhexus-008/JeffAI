@@ -66,7 +66,7 @@
             <h2>Create your account</h2>
             <p class="lede">It takes a moment. No card required.</p>
 
-            <form id="signupForm" novalidate>
+            <form id="authForm" novalidate>
 
                 <div class="field">
                     <label for="email">Email address</label>
@@ -98,6 +98,10 @@
 
             <p class="message" id="message" role="status" aria-live="polite"></p>
 
+            <p class="service-line" id="serviceLine"></p>
+
+            <button class="retry" type="button" id="retry" hidden>Retry connection</button>
+
             <p class="switch-link">
                 Already have an account?
                 <a href="/login.html">Sign in</a>
@@ -112,77 +116,10 @@
 <script src="/vendor/supabase.js"></script>
 <script src="/config.js"></script>
 
-<script>
-(function () {
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script type="module">
+    import { mountAuthPage } from "/app/auth.js";
 
-    const form = document.getElementById("signupForm");
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const confirm = document.getElementById("confirm");
-    const message = document.getElementById("message");
-    const submit = document.getElementById("submitButton");
-    const reveal = document.getElementById("revealPassword");
-
-    function setMessage(text, type) {
-        message.textContent = text || "";
-        message.className = "message" + (type ? " " + type : "");
-    }
-
-    reveal.addEventListener("click", function () {
-        const showing = password.type === "text";
-        password.type = showing ? "password" : "text";
-        reveal.setAttribute("aria-label", showing ? "Show password" : "Hide password");
-    });
-
-    form.addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        const emailValue = email.value.trim();
-        const passwordValue = password.value;
-
-        if (!emailValue || !passwordValue) {
-            setMessage("Enter your email and choose a password.", "error");
-            return;
-        }
-
-        if (passwordValue.length < 6) {
-            setMessage("Use at least 6 characters for your password.", "error");
-            return;
-        }
-
-        if (passwordValue !== confirm.value) {
-            setMessage("Those passwords do not match.", "error");
-            return;
-        }
-
-        setMessage("Creating your account…");
-        submit.disabled = true;
-        submit.innerHTML = '<span class="spinner"></span> Creating account';
-
-        const { data, error } = await supabaseClient.auth.signUp({
-            email: emailValue,
-            password: passwordValue
-        });
-
-        if (error) {
-            setMessage(error.message, "error");
-            submit.disabled = false;
-            submit.textContent = "Create account";
-            return;
-        }
-
-        if (!data.session) {
-            setMessage("Account created. Check your email to confirm, then sign in.", "success");
-            submit.disabled = false;
-            submit.textContent = "Create account";
-            return;
-        }
-
-        setMessage("Account created. Opening JeffAI…", "success");
-        window.location.href = "/";
-    });
-})();
+    mountAuthPage({ mode: "signup" });
 </script>
 
 </body>

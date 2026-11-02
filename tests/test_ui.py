@@ -12,6 +12,7 @@ Usage:  python tests/test_ui.py
 """
 
 import io
+import json
 import os
 import sys
 import threading
@@ -30,7 +31,9 @@ from playwright.sync_api import sync_playwright
 PORT = 5599
 BASE = f"http://127.0.0.1:{PORT}"
 
-SB_REF = "enpcfbebqwcsrrvvghev"
+# The storage key supabase-js derives from the project URL the backend
+# serves at /api/config, so the seeded session lands where the app looks.
+SB_REF = os.environ["SUPABASE_URL"].split("//")[-1].split(".")[0]
 
 SESSION = {
     "access_token": "fake-access-token",
@@ -286,29 +289,149 @@ def run():
 
         print("\nAuth pages")
 
-        # A fresh context: the seeded session above would (correctly)
-        # redirect the login page straight back into the app.
-        fresh = browser.new_context(viewport={"width": 1280, "height": 900}, device_scale_factor=2)
-        auth_page = fresh.new_page()
+        def auth_context(handler=None):
+            ctx = browser.new_context(viewport={"width": 1280, "height": 900}, device_scale_factor=2)
+            if handler:
+                handler(ctx)
+            return ctx
 
-        auth_page.goto(f"{BASE}/login.html", wait_until="domcontentloaded")
-        auth_page.wait_for_timeout(900)
-        check("login page renders", auth_page.is_visible("#loginForm"))
-        auth_page.fill("#email", "jeff@example.com")
-        auth_page.fill("#password", "secret123")
-        check("login fields accept input", auth_page.input_value("#email") == "jeff@example.com")
-        auth_page.screenshot(path="tests/shot-10-login.png")
+        SESSION_BODY = {
+            "access_token": "logging-in-token",
+            "token_type": "bearer",
+            "expires_in": 3600,
+            "expires_at": 4102444800,
+            "refresh_token": "logging-in-refresh",
+            "user": SESSION["user"],
+        }
 
-        auth_page.goto(f"{BASE}/signup.html", wait_until="domcontentloaded")
-        auth_page.wait_for_timeout(700)
-        check("signup page renders", auth_page.is_visible("#signupForm"))
-        check("signup has password confirm", auth_page.is_visible("#confirm"))
+        # ---- 1. pages render
+        fresh = auth_context()
+        auth = fresh.new_page()
+        auth.goto(f"{BASE}/login.html", wait_until="domcontentloaded")
+        auth.wait_for_timeout(1200)
+        check("login page renders", auth.is_visible("#authForm"))
+        check("login fields accept input",
+              (auth.fill("#email", "jeff@example.com") or auth.input_value("#email")) == "jeff@example.com")
+        check("login reports service status", bool((auth.text_content("#serviceLine") or "").strip()),
+              auth.text_content("#serviceLine"))
+        auth.screenshot(path="tests/shot-10-login.png")
 
-        auth_page.goto(f"{BASE}/", wait_until="domcontentloaded")
-        auth_page.wait_for_timeout(1500)
-        check("guest is redirected to login", "login.html" in auth_page.url, auth_page.url)
+        auth.goto(f"{BASE}/signup.html", wait_until="domcontentloaded")
+        auth.wait_for_timeout(900)
+        check("signup page renders", auth.is_visible("#authForm"))
+        check("signup has password confirm", auth.is_visible("#confirm"))
 
+        auth.goto(f"{BASE}/", wait_until="domcontentloaded")
+        auth.wait_for_timeout(2000)
+        check("guest is redirected to login", "login.html" in auth.url, auth.url)
         fresh.close()
+
+        # ---- 2. unreachable auth service (the reported "Failed to fetch" case)
+        def aborted(ctx):
+            ctx.route("**/auth/v1/**", lambda route, request: route.abort())
+
+        broken = auth_context(aborted)
+        page_b = broken.new_page()
+        page_b.goto(f"{BASE}/login.html", wait_until="domcontentloaded")
+        page_b.wait_for_timeout(1500)
+
+        page_b.fill("#email", "jeff@example.com")
+        page_b.fill("#password", "secret123")
+        page_b.click("#submitButton")
+        page_b.wait_for_timeout(2500)
+
+        diagnosis = page_b.text_content("#message") or ""
+
+        check("unreachable auth is diagnosed", "cannot reach its sign-in service" in diagnosis.lower(), diagnosis[:120])
+        check("diagnosis names the host", "test.supabase.co" in diagnosis, diagnosis[:120])
+        check("diagnosis clears the password of blame",
+              "not your credentials" in diagnosis.lower(), diagnosis[:120])
+        check("raw browser error is not shown", "failed to fetch" not in diagnosis.lower(), diagnosis[:80])
+        check("retry is offered", page_b.is_visible("#retry"))
+        page_b.screenshot(path="tests/shot-11-login-unreachable.png")
+        broken.close()
+
+        # ---- 3. service alive, wrong password: credentials message
+        def wrong_password(ctx):
+            ctx.route("**/auth/v1/health", lambda route, request: route.fulfill(
+                status=200, content_type="application/json", body='{"name":"GoTrue"}'))
+            ctx.route("**/auth/v1/token**", lambda route, request: route.fulfill(
+                status=400, content_type="application/json",
+                body='{"error":"invalid_grant","error_description":"Invalid login credentials"}'))
+
+        wrong = auth_context(wrong_password)
+        page_w = wrong.new_page()
+        page_w.goto(f"{BASE}/login.html", wait_until="domcontentloaded")
+        page_w.wait_for_timeout(1200)
+        page_w.fill("#email", "jeff@example.com")
+        page_w.fill("#password", "definitely-wrong")
+        page_w.click("#submitButton")
+        page_w.wait_for_timeout(2000)
+
+        credential_message = page_w.text_content("#message") or ""
+
+        check("healthy service + bad password explains itself",
+              "do not match" in credential_message.lower(), credential_message[:120])
+        check("no false outage message", "cannot reach" not in credential_message.lower(), credential_message[:120])
+        check("service line shows healthy", "ok" in (page_w.get_attribute("#serviceLine", "class") or ""),
+              page_w.get_attribute("#serviceLine", "class"))
+        wrong.close()
+
+        # ---- 4. successful sign-in returns to the app
+        def success(ctx):
+            ctx.route("**/auth/v1/health", lambda route, request: route.fulfill(
+                status=200, content_type="application/json", body='{"name":"GoTrue"}'))
+            ctx.route("**/auth/v1/token**", lambda route, request: route.fulfill(
+                status=200, content_type="application/json", body=json.dumps(SESSION_BODY)))
+
+        signed_in = auth_context(success)
+        page_s = signed_in.new_page()
+        page_s.goto(f"{BASE}/login.html", wait_until="domcontentloaded")
+        page_s.wait_for_timeout(1000)
+        page_s.fill("#email", "jeff@example.com")
+        page_s.fill("#password", "correct-horse")
+        page_s.click("#submitButton")
+        page_s.wait_for_url(f"{BASE}/", timeout=20000)
+        page_s.wait_for_selector("#welcome", timeout=20000)
+
+        check("successful login lands in the app", page_s.url.rstrip("/") == BASE, page_s.url)
+        check("app boots after login", page_s.is_visible("#welcome"))
+        check("session persisted",
+              page_s.evaluate("Object.keys(localStorage).some(k => k.includes('auth-token'))"))
+        signed_in.close()
+
+        # ---- 5. server config is authoritative (drift regression)
+        seen = []
+
+        def drifted(ctx):
+            def config_handler(route, request):
+                seen.append("config")
+                route.fulfill(status=200, content_type="application/json", body=json.dumps({
+                    "success": True,
+                    "supabase_url": "https://drifted-project.supabase.co",
+                    "supabase_anon_key": "drifted-anon-key",
+                    "configured": True,
+                }))
+
+            def health_handler(route, request):
+                seen.append(request.url)
+                route.fulfill(status=200, content_type="application/json", body='{"name":"GoTrue"}')
+
+            ctx.route("**/api/config", config_handler)
+            ctx.route("https://drifted-project.supabase.co/**", health_handler)
+
+        drift = auth_context(drifted)
+        page_d = drift.new_page()
+        page_d.goto(f"{BASE}/login.html", wait_until="domcontentloaded")
+        page_d.wait_for_timeout(1500)
+
+        calls = [url for url in seen if url != "config"]
+
+        check("login uses the server-provided project",
+              any("drifted-project.supabase.co" in url for url in calls), calls[:3])
+        check("bundled stale project is not contacted",
+              not any("enpcfbebqwcsrrvvghev" in url for url in calls), calls[:3])
+        drift.close()
 
         browser.close()
 

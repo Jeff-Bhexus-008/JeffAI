@@ -84,11 +84,36 @@ def download_apk(filename):
 # HEALTH
 # =========================================================
 
+@app.route("/api/config")
+def client_config():
+    """
+    Single source of truth for the browser's Supabase project.
+
+    Serving this from the backend means a project migration only needs
+    new Render environment variables - the frontend cannot keep pointing
+    at a retired project.
+    """
+
+    from backend.supabase_client import public_client_config
+
+    response = jsonify({
+        "success": True,
+        "version": "2.0.0",
+        **public_client_config(),
+    })
+
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+
+    return response
+
+
 @app.route("/api/health")
 def health():
 
     from backend.ai.engine import provider_available
-    from backend.supabase_client import supabase_ready
+    from backend.supabase_client import auth_service_health, supabase_ready
+
+    auth_service = auth_service_health()
 
     return jsonify({
         "success": True,
@@ -100,7 +125,12 @@ def health():
             "groq": provider_available("groq"),
             "openrouter": provider_available("openrouter"),
         },
+        # `database` has always meant "credentials present"; keep it for
+        # compatibility and report live reachability separately.
         "database": supabase_ready(),
+        "database_configured": supabase_ready(),
+        "auth_service": auth_service,
+        "auth_service_reachable": auth_service["reachable"],
     })
 
 

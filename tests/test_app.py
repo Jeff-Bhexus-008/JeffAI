@@ -62,6 +62,7 @@ class FakeSupabase:
             "images": [],
         }
         self.storage = {}
+        self.auth_health_status = 200
 
     # ---------------- filters ----------------
 
@@ -113,6 +114,11 @@ class FakeSupabase:
     # ---------------- HTTP verbs ----------------
 
     def get(self, url, headers=None, params=None, timeout=None, **kwargs):
+        if "/auth/v1/health" in url:
+            if self.auth_health_status != 200:
+                return FakeResponse(self.auth_health_status, {"message": "service unavailable"})
+            return FakeResponse(200, {"name": "GoTrue", "version": "v2.test"})
+
         if "/auth/v1/user" in url:
             return FakeResponse(200, {"id": "user-1", "email": "jeff@example.com"})
 
@@ -350,6 +356,45 @@ def test_health_and_models():
     check("status reports version", body(status).get("version") == "2.0.0")
 
 
+def test_client_config():
+    print("\nClient configuration")
+
+    response = client.get("/api/config")
+    payload = body(response)
+
+    check("config returns 200", response.status_code == 200, response.status_code)
+    check("config carries the supabase url", payload.get("supabase_url", "").startswith("https://"), payload)
+    check("config carries the anon key", bool(payload.get("supabase_anon_key")), payload)
+    check("config never exposes a service key",
+          "service_role" not in json.dumps(payload).lower(), payload)
+    check("config is not cached",
+          "no-store" in response.headers.get("Cache-Control", ""),
+          response.headers.get("Cache-Control"))
+
+    health = body(client.get("/api/health"))
+
+    check("health reports auth service block", isinstance(health.get("auth_service"), dict), health.get("auth_service"))
+    check("health reports a healthy auth service",
+          health.get("auth_service_reachable") is True, health.get("auth_service"))
+
+    from backend.supabase_client import auth_service_health
+
+    FAKE_DB.auth_health_status = 503
+    down = auth_service_health(force=True)
+
+    check("degraded auth service detected", down["reachable"] is False, down)
+    check("degraded detail is explicit", "503" in down["detail"], down)
+
+    FAKE_DB.auth_health_status = 200
+    back = auth_service_health(force=True)
+    check("recovered auth service detected", back["reachable"] is True, back)
+    check("health still reports configuration",
+          health.get("database_configured") is True, health.get("database"))
+
+    status = body(client.get("/api/status"))
+    check("status still responds", status.get("success") is True, status)
+
+
 def test_static_pages():
     print("\nFrontend delivery")
 
@@ -360,7 +405,12 @@ def test_static_pages():
     check("index loads module", '/app/main.js' in html)
     check("index credits Jeff Bhexus", "Jeff Bhexus" in html)
 
+    login_html = client.get("/login.html").get_data(as_text=True)
+    check("login uses the shared auth controller", "/app/auth.js" in login_html)
+    check("login exposes service status", 'id="serviceLine"' in login_html)
+
     for asset in ["/app/styles.css", "/app/main.js", "/app/markdown.js",
+                  "/app/env.js", "/app/auth.js",
                   "/app/auth.css", "/vendor/marked.min.js", "/vendor/supabase.js",
                   "/config.js", "/login.html", "/signup.html"]:
         response = client.get(asset)
@@ -672,6 +722,7 @@ def main():
     print("=" * 52)
 
     test_health_and_models()
+    test_client_config()
     test_static_pages()
     test_chat_flow()
     test_streaming()

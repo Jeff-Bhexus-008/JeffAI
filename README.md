@@ -157,7 +157,8 @@ require `Authorization: Bearer <supabase access token>`.
 
 | Method | Route | Purpose |
 | --- | --- | --- |
-| GET | `/api/health`, `/api/status` | Deployment and provider status |
+| GET | `/api/health`, `/api/status` | Deployment, provider and auth-service status |
+| GET | `/api/config` | The Supabase project the browser must use (URL + public anon key) |
 | GET | `/api/models` | Model catalogue + tool availability |
 | POST | `/api/chat` | Blocking answer (`message`, `conversation_id`, `model`, `mode`, `regenerate`, `edit_message_id`, `use_memory`) |
 | POST | `/api/chat/stream` | Same input, Server-Sent Events: `meta`, `delta`, `done`, `error` |
@@ -174,6 +175,36 @@ require `Authorization: Bearer <supabase access token>`.
 | GET | `/api/files` | Saved documents and images |
 
 ---
+
+## Where the Supabase project comes from
+
+The backend is the single source of truth. On boot the browser calls
+`/api/config` and uses the project returned there; `frontend/config.js` is only
+a fallback for the Android shell or when the API is unreachable.
+
+That means **a project migration needs no frontend change**: update
+`SUPABASE_URL` and `SUPABASE_KEY` on the server, redeploy, and the browser
+follows. To confirm the configuration is live, open:
+
+- `/api/config` — the project URL the browser will use (the anon key is public
+  by design and protected by row level security; a service-role key is never
+  exposed)
+- `/api/health` — `auth_service_reachable` and `auth_service.detail` tell you
+  whether that project actually answers
+
+### If sign-in fails with "Failed to fetch"
+
+That message means the browser never reached the auth server. Confirm with:
+
+```bash
+curl -s https://YOUR-PROJECT.supabase.co/auth/v1/health
+```
+
+A DNS error (`NXDOMAIN`) or an empty reply means the project was deleted,
+renamed or is paused. Nothing in the app can work around that: set a live
+project in the Render environment variables and in `frontend/config.js`.
+Credentials are not the problem in this case, and the login page now says so
+explicitly instead of showing the raw browser error.
 
 ## Notes on safety
 

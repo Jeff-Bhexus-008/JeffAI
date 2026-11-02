@@ -66,7 +66,7 @@
             <h2>Welcome back</h2>
             <p class="lede">Sign in to continue your conversations.</p>
 
-            <form id="loginForm" novalidate>
+            <form id="authForm" novalidate>
 
                 <div class="field">
                     <label for="email">Email address</label>
@@ -91,6 +91,10 @@
 
             <p class="message" id="message" role="status" aria-live="polite"></p>
 
+            <p class="service-line" id="serviceLine"></p>
+
+            <button class="retry" type="button" id="retry" hidden>Retry connection</button>
+
             <p class="switch-link">
                 Don't have an account?
                 <a href="/signup.html">Create one</a>
@@ -105,69 +109,10 @@
 <script src="/vendor/supabase.js"></script>
 <script src="/config.js"></script>
 
-<script>
-(function () {
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script type="module">
+    import { mountAuthPage } from "/app/auth.js";
 
-    const form = document.getElementById("loginForm");
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const message = document.getElementById("message");
-    const submit = document.getElementById("submitButton");
-    const reveal = document.getElementById("revealPassword");
-
-    function setMessage(text, type) {
-        message.textContent = text || "";
-        message.className = "message" + (type ? " " + type : "");
-    }
-
-    reveal.addEventListener("click", function () {
-        const showing = password.type === "text";
-        password.type = showing ? "password" : "text";
-        reveal.setAttribute("aria-label", showing ? "Show password" : "Hide password");
-    });
-
-    supabaseClient.auth.getSession().then(function (result) {
-        if (result && result.data && result.data.session) {
-            window.location.href = "/";
-        }
-    });
-
-    form.addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        const emailValue = email.value.trim();
-        const passwordValue = password.value;
-
-        if (!emailValue || !passwordValue) {
-            setMessage("Enter your email and password to continue.", "error");
-            return;
-        }
-
-        setMessage("Signing you in…");
-        submit.disabled = true;
-        submit.innerHTML = '<span class="spinner"></span> Signing in';
-
-        const { error } = await supabaseClient.auth.signInWithPassword({
-            email: emailValue,
-            password: passwordValue
-        });
-
-        if (error) {
-            const friendly = /invalid login/i.test(error.message)
-                ? "That email and password do not match. Please try again."
-                : error.message;
-
-            setMessage(friendly, "error");
-            submit.disabled = false;
-            submit.textContent = "Sign in";
-            return;
-        }
-
-        setMessage("Signed in. Opening JeffAI…", "success");
-        window.location.href = "/";
-    });
-})();
+    mountAuthPage({ mode: "login" });
 </script>
 
 </body>
