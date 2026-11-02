@@ -6,7 +6,6 @@ Created by Amedu Vincent Onjefu (Jeff Bhexus).
 """
 
 import base64
-import io
 
 import requests
 

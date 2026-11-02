@@ -8,8 +8,6 @@ memory, and the user's documents - is assembled here so both the
 blocking chat route and the streaming route share one implementation.
 """
 
-import os
-
 import requests
 
 from backend.ai.prompts import build_prompt, build_title

@@ -10,13 +10,12 @@ under Saved files.
 """
 
 import base64
-import os
 import urllib.parse
 import uuid
 
 import requests
 
-from backend.ai.engine import AIUnavailable, provider_available, get_client
+from backend.ai.engine import AIUnavailable
 
 
 POLLINATIONS_ENDPOINT = "https://image.pollinations.ai/prompt"
