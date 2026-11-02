@@ -347,12 +347,26 @@ html[data-theme="light"] .ambient .grid-mask {
     height: 38px;
     flex: 0 0 38px;
     border-radius: 12px;
-    background: var(--accent-gradient);
+    background: radial-gradient(120% 120% at 30% 20%, rgba(139, 92, 246, .22), rgba(6, 6, 11, .9));
     color: #fff;
     font-weight: 800;
     font-size: 18px;
     letter-spacing: -.5px;
-    box-shadow: 0 8px 22px rgba(99, 102, 241, .38);
+    box-shadow: 0 8px 22px rgba(99, 102, 241, .32);
+    overflow: hidden;
+    animation: brandGlow 5.5s ease-in-out infinite;
+}
+
+.brand-mark img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+@keyframes brandGlow {
+    0%, 100% { box-shadow: 0 8px 22px rgba(99, 102, 241, .30); }
+    50%      { box-shadow: 0 8px 30px rgba(34, 211, 238, .42); }
 }
 
 .brand-mark::after {
@@ -3023,4 +3037,105 @@ input[type="range"] {
     font-size: 11.5px;
     line-height: 1.5;
     color: var(--muted);
+}
+
+/* =========================================================
+   ANDROID DOWNLOAD BUTTON
+   ========================================================= */
+
+.apk-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, .16);
+    background: var(--accent-gradient);
+    color: #fff;
+    font-size: 12.8px;
+    font-weight: 650;
+    letter-spacing: .1px;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 8px 22px rgba(99, 102, 241, .32);
+    transition: transform .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease);
+}
+
+.apk-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.apk-btn-short {
+    display: none;
+}
+
+.apk-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, .44);
+    filter: brightness(1.06);
+}
+
+.apk-btn:active {
+    transform: translateY(0);
+}
+
+.apk-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.apk-btn.is-pending {
+    opacity: .72;
+    pointer-events: none;
+}
+
+.apk-btn.is-unavailable {
+    background: var(--surface-2);
+    border-color: var(--border);
+    color: var(--muted);
+    box-shadow: none;
+}
+
+@media (max-width: 900px) {
+    .apk-btn {
+        padding: 0 12px;
+        font-size: 12.2px;
+    }
+}
+
+@media (max-width: 640px) {
+    .apk-btn {
+        height: 40px;
+        padding: 0 11px;
+        gap: 6px;
+    }
+
+    .apk-btn-label {
+        display: none;
+    }
+
+    .apk-btn-short {
+        display: inline;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-mark {
+        animation: none !important;
+    }
+
+    .apk-btn {
+        transition: none;
+    }
+
+    .apk-btn:hover {
+        transform: none;
+    }
 }

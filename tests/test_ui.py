@@ -159,6 +159,161 @@ def run():
         check("conversations loaded", any("/api/conversations" in url for url in api_calls), api_calls[:5])
         page.screenshot(path="tests/shot-01-chat-dark.png")
 
+        print("\nBrand logo")
+
+        logo = page.evaluate("""() => {
+            const img = document.querySelector('.brand-mark img');
+            if (!img) return null;
+            const box = img.getBoundingClientRect();
+            return {
+                src: img.getAttribute('src'),
+                loaded: img.naturalWidth > 0,
+                width: Math.round(box.width),
+                height: Math.round(box.height),
+            };
+        }""")
+
+        check("header shows the brain logo", bool(logo), logo)
+        check("logo image loads", bool(logo and logo["loaded"]), logo)
+        check("logo uses the svg asset", bool(logo and logo["src"] == "/assets/logo.svg"), logo)
+        check("logo is a sensible size", bool(logo and 26 <= logo["width"] <= 44), logo)
+
+        favicons = page.eval_on_selector_all(
+            'link[rel="icon"], link[rel="apple-touch-icon"]',
+            "els => els.map(e => e.getAttribute('href'))")
+        check("favicon points at the logo", any("logo.svg" in (h or "") for h in favicons), favicons)
+        check("png favicon fallback present", any("favicon-32" in (h or "") for h in favicons), favicons)
+
+        broken = page.evaluate("""() => [...document.images]
+            .filter(i => i.getAttribute('src') && i.complete && i.naturalWidth === 0)
+            .map(i => i.getAttribute('src'))""")
+        placeholder = page.evaluate(
+            "() => { const w = document.getElementById('visionPreviewWrap'); return w ? w.hidden : true; }")
+
+        check("no broken images", not broken, broken)
+        check("empty preview slot stays hidden", placeholder is True, placeholder)
+
+        page.emulate_media(reduced_motion="reduce")
+        still = page.evaluate("getComputedStyle(document.querySelector('.brand-mark')).animationName")
+        check("logo honours reduced motion", still in ("none", ""), still)
+        page.emulate_media(reduced_motion="no-preference")
+
+        print("\nAndroid download")
+
+        button = page.evaluate("""() => {
+            const b = document.getElementById('downloadApkBtn');
+            if (!b) return null;
+            const box = b.getBoundingClientRect();
+            return {
+                href: b.getAttribute('href'),
+                label: b.textContent.trim(),
+                title: b.getAttribute('title'),
+                icon: !!b.querySelector('svg'),
+                height: Math.round(box.height),
+                visible: box.width > 0 && box.height > 0,
+                right: Math.round(box.right),
+                viewport: window.innerWidth,
+            };
+        }""")
+
+        check("download button exists", bool(button), button)
+        check("download button is visible", bool(button and button["visible"]), button)
+        check("download button is labelled", bool(button and "Download APK" in button["label"]), button)
+        check("download button has an android icon", bool(button and button["icon"]), button)
+        check("download button sits top-right",
+              bool(button and button["right"] > button["viewport"] * 0.6), button)
+        check("download button points at the apk",
+              bool(button and "/downloads/" in (button["href"] or "")), button)
+
+        release = page.evaluate("async () => (await fetch('/api/app-release')).json()")
+        check("release metadata available", release.get("available") is True, release)
+        check("release is installable", release.get("installable") is True, release)
+        check("button advertises the size",
+              bool(button and release.get("size_label", "") in (button["title"] or "")), button)
+
+        with page.expect_download(timeout=60000) as download_info:
+            page.click("#downloadApkBtn")
+
+        download = download_info.value
+        saved = os.path.join("tests", "downloaded.apk")
+        download.save_as(saved)
+
+        import hashlib
+
+        with open(saved, "rb") as handle:
+            served_hash = hashlib.sha256(handle.read()).hexdigest()
+
+        with open("downloads/JeffAI.apk", "rb") as handle:
+            repo_hash = hashlib.sha256(handle.read()).hexdigest()
+
+        check("download keeps the apk filename", download.suggested_filename.endswith(".apk"),
+              download.suggested_filename)
+        check("downloaded bytes are the real apk", served_hash == repo_hash, served_hash[:12])
+        check("downloaded apk is not empty", os.path.getsize(saved) > 1_000_000, os.path.getsize(saved))
+        os.remove(saved)
+
+        print("\nAndroid download on mobile")
+
+        mobile = browser.new_context(viewport={"width": 390, "height": 844}, accept_downloads=True)
+        seed(mobile)
+        page_m = mobile.new_page()
+        page_m.goto(BASE, wait_until="domcontentloaded")
+        page_m.wait_for_selector("#welcome", timeout=25000)
+        page_m.wait_for_timeout(1200)
+
+        mobile_button = page_m.evaluate("""() => {
+            const b = document.getElementById('downloadApkBtn');
+            const box = b.getBoundingClientRect();
+            const style = getComputedStyle(b);
+            return {
+                visible: box.width > 0 && box.height > 0,
+                height: Math.round(box.height),
+                within: box.right <= window.innerWidth + 1 && box.left >= 0,
+                label: b.innerText.trim().replace(/\\s+/g, ' '),
+                display: style.display,
+            };
+        }""")
+
+        check("mobile download button visible", mobile_button["visible"], mobile_button)
+        check("mobile download button has a tap target", mobile_button["height"] >= 38, mobile_button)
+        check("mobile download button fits the screen", mobile_button["within"], mobile_button)
+        check("mobile download button keeps a label", len(mobile_button["label"]) >= 3, mobile_button)
+
+        with page_m.expect_download(timeout=60000) as mobile_download:
+            page_m.click("#downloadApkBtn")
+
+        check("mobile tap downloads the apk",
+              mobile_download.value.suggested_filename.endswith(".apk"),
+              mobile_download.value.suggested_filename)
+        page_m.screenshot(path="tests/shot-12-mobile-header.png")
+        mobile.close()
+
+        print("\nUnavailable apk state")
+
+        def no_release(ctx):
+            ctx.route("**/api/app-release", lambda route, request: route.fulfill(
+                status=200, content_type="application/json",
+                body=json.dumps({
+                    "success": True, "available": False, "source": "none",
+                    "url": None, "message": "The Android app has not been published yet.",
+                })))
+
+        missing_ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+        seed(missing_ctx)
+        no_release(missing_ctx)
+        page_x = missing_ctx.new_page()
+        page_x.goto(BASE, wait_until="domcontentloaded")
+        page_x.wait_for_selector("#welcome", timeout=25000)
+        page_x.wait_for_timeout(1500)
+        page_x.click("#downloadApkBtn")
+        page_x.wait_for_timeout(900)
+
+        toast_text = page_x.text_content(".toast") or ""
+
+        check("missing apk is explained", "not been published" in toast_text.lower(), toast_text[:100])
+        check("missing apk does not navigate", page_x.url.rstrip("/") == BASE, page_x.url)
+        missing_ctx.close()
+
         print("\nStreaming chat")
         page.fill("#messageInput", "How do I reverse a list in Python?")
         page.keyboard.press("Enter")
@@ -310,6 +465,9 @@ def run():
         auth.goto(f"{BASE}/login.html", wait_until="domcontentloaded")
         auth.wait_for_timeout(1200)
         check("login page renders", auth.is_visible("#authForm"))
+        login_logo = auth.evaluate(
+            "() => { const i = document.querySelector('.brand-mark img'); return i ? i.naturalWidth > 0 : false; }")
+        check("login page shows the brain logo", login_logo)
         check("login fields accept input",
               (auth.fill("#email", "jeff@example.com") or auth.input_value("#email")) == "jeff@example.com")
         check("login reports service status", bool((auth.text_content("#serviceLine") or "").strip()),
@@ -319,6 +477,9 @@ def run():
         auth.goto(f"{BASE}/signup.html", wait_until="domcontentloaded")
         auth.wait_for_timeout(900)
         check("signup page renders", auth.is_visible("#authForm"))
+        signup_logo = auth.evaluate(
+            "() => { const i = document.querySelector('.brand-mark img'); return i ? i.naturalWidth > 0 : false; }")
+        check("signup page shows the brain logo", signup_logo)
         check("signup has password confirm", auth.is_visible("#confirm"))
 
         auth.goto(f"{BASE}/", wait_until="domcontentloaded")

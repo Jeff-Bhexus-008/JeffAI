@@ -13,3 +13,6 @@ jeffai-release.keystore
 # test artefacts
 .pytest_cache/
 tests/*.png
+*.jks
+android/keystore.properties
+android/local.properties

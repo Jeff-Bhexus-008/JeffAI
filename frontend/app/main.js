@@ -3014,8 +3014,97 @@ function setupUserChrome() {
     $("#accountEmail").textContent = email || "Signed in";
 }
 
+/* =========================================================
+   ANDROID DOWNLOAD
+   ========================================================= */
+
+const releaseState = { ready: false, data: null };
+
+async function initAppRelease() {
+    const button = $("#downloadApkBtn");
+
+    if (!button) return;
+
+    button.classList.add("is-pending");
+
+    try {
+        const response = await fetch(`${API_BASE}/api/app-release`, {
+            headers: { Accept: "application/json" },
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const release = await response.json();
+
+        releaseState.ready = true;
+        releaseState.data = release;
+
+        if (!release.available || !release.url) {
+            button.classList.add("is-unavailable");
+            button.dataset.unavailable = release.message || "The Android app is not published yet.";
+            button.title = button.dataset.unavailable;
+            button.setAttribute("aria-label", `Download APK. ${button.dataset.unavailable}`);
+            return;
+        }
+
+        const url = release.source === "external" ? release.url : `${API_BASE}${release.url}`;
+        const details = [release.filename, release.size_label].filter(Boolean).join(" · ");
+
+        button.classList.remove("is-unavailable");
+        button.setAttribute("aria-label", "Download the JeffAI Android app");
+        button.href = url;
+        button.setAttribute("download", release.filename || "JeffAI.apk");
+        button.title = release.installable === false
+            ? `Download ${details} (this build is not signed and will not install)`
+            : `Download ${details}`;
+
+        if (release.source === "external") {
+            button.removeAttribute("download");
+            button.target = "_blank";
+            button.rel = "noopener";
+        }
+    } catch (error) {
+        console.warn("[JeffAI] release lookup failed", error);
+        button.classList.remove("is-pending");
+        return;
+    } finally {
+        button.classList.remove("is-pending");
+    }
+}
+
+function handleAppReleaseClick(event) {
+    const button = event.currentTarget;
+    const release = releaseState.data;
+
+    if (!releaseState.ready) return;              // let the plain link work
+    if (!release?.available) {
+        event.preventDefault();
+        toast(button.dataset.unavailable || "The Android app is not published yet.", "error", 9000);
+        return;
+    }
+
+    const details = [release.filename, release.size_label].filter(Boolean).join(" · ");
+
+    if (release.installable === false) {
+        toast(
+            `Downloading ${details}. Note: this build is not signed, so Android will refuse to install it.`,
+            "error",
+            9000
+        );
+        return;
+    }
+
+    toast(`Downloading ${details}…`, "success", 3200);
+}
+
 async function init() {
     applyTheme(read(STORAGE.theme, "dark"), false);
+
+    const apkButton = $("#downloadApkBtn");
+
+    apkButton?.addEventListener("click", handleAppReleaseClick);
+
+    initAppRelease();
 
     const libsReady = await ensureLibs();
 

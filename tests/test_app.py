@@ -356,6 +356,99 @@ def test_health_and_models():
     check("status reports version", body(status).get("version") == "2.0.0")
 
 
+def test_app_release():
+    print("\nAndroid release")
+
+    import backend.app as app_module
+
+    response = client.get("/api/app-release")
+    payload = body(response)
+
+    check("release endpoint returns 200", response.status_code == 200, response.status_code)
+    check("release is available", payload.get("available") is True, payload)
+    check("release points at a download url",
+          str(payload.get("url", "")).startswith("/downloads/"), payload.get("url"))
+    check("release is a valid package", payload.get("valid_package") is True, payload)
+    check("release is signed", payload.get("signed") is True, payload)
+    check("release reports installability", payload.get("installable") is True, payload)
+    check("release reports a size", payload.get("size", 0) > 1_000_000, payload.get("size"))
+    check("release reports a sha256", len(payload.get("sha256", "")) == 64, payload.get("sha256"))
+    check("release metadata is not cached",
+          "no-store" in response.headers.get("Cache-Control", ""))
+
+    apk = client.get(payload["url"])
+    check("apk downloads", apk.status_code == 200, apk.status_code)
+    check("apk mimetype", apk.headers.get("Content-Type", "").startswith(
+        "application/vnd.android.package-archive"), apk.headers.get("Content-Type"))
+    check("apk is an attachment", "attachment" in apk.headers.get("Content-Disposition", ""),
+          apk.headers.get("Content-Disposition"))
+
+    import hashlib
+    served = hashlib.sha256(apk.data).hexdigest()
+    check("served bytes match the advertised hash", served == payload["sha256"], served[:12])
+
+    os.environ["APK_DOWNLOAD_URL"] = "https://github.com/Jeff-Bhexus-008/JeffAI/releases/download/v2/JeffAI.apk"
+    try:
+        override = body(client.get("/api/app-release"))
+        check("external override wins", override.get("source") == "external", override.get("source"))
+        check("external url passed through",
+              override.get("url", "").endswith("JeffAI.apk"), override.get("url"))
+    finally:
+        os.environ.pop("APK_DOWNLOAD_URL", None)
+
+    import tempfile
+
+    empty = tempfile.mkdtemp()
+    original = app_module.APK_DIR
+    app_module.APK_DIR = empty
+    try:
+        missing = body(client.get("/api/app-release"))
+        check("missing apk is reported honestly", missing.get("available") is False, missing)
+        check("missing apk explains itself", bool(missing.get("message")), missing.get("message"))
+    finally:
+        app_module.APK_DIR = original
+
+
+def test_brand_assets():
+    print("\nBrand assets")
+
+    from PIL import Image
+
+    logo = client.get("/assets/logo.svg")
+
+    check("logo svg served", logo.status_code == 200, logo.status_code)
+    check("logo svg mimetype", "svg" in logo.headers.get("Content-Type", ""), logo.headers.get("Content-Type"))
+
+    markup = logo.get_data(as_text=True)
+
+    check("logo is a brain mark", "brain" in markup.lower())
+    check("logo is animated", "@keyframes" in markup)
+    check("logo respects reduced motion", "prefers-reduced-motion" in markup)
+    check("logo uses the app gradient", "#8b5cf6" in markup and "#22d3ee" in markup)
+
+    for asset in ["/assets/favicon-32.png", "/assets/apple-touch-icon.png",
+                  "/assets/icon-192.png", "/assets/icon-512.png", "/manifest.json"]:
+        check(f"served {asset}", client.get(asset).status_code == 200)
+
+    for icon in ["favicon-32", "apple-touch-icon", "icon-512"]:
+        image = client.get(f"/assets/{icon}.png")
+        check(f"{icon} is a png", image.headers.get("Content-Type", "").startswith("image/png"))
+
+    page_html = client.get("/").get_data(as_text=True)
+    check("dashboard uses the logo", '/assets/logo.svg' in page_html)
+    check("dashboard offers the apk", 'id="downloadApkBtn"' in page_html)
+    check("apk button is labelled", "Download APK" in page_html)
+    check("favicon points at the logo", 'rel="icon"' in page_html and "logo.svg" in page_html)
+
+    for name in ("login.html", "signup.html"):
+        page_text = client.get(f"/{name}").get_data(as_text=True)
+        check(f"{name} shows the logo", "/assets/logo.svg" in page_text)
+        check(f"{name} still has its form", 'id="authForm"' in page_text)
+
+    check("android launcher icons were regenerated",
+          os.path.getsize("android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png") > 5000)
+
+
 def test_client_config():
     print("\nClient configuration")
 
@@ -722,6 +815,8 @@ def main():
     print("=" * 52)
 
     test_health_and_models()
+    test_app_release()
+    test_brand_assets()
     test_client_config()
     test_static_pages()
     test_chat_flow()

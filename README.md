@@ -121,11 +121,69 @@ directory, so the app shell ships inside the APK and calls the deployed backend:
 ```bash
 npm install
 npx cap sync android
-cd android && ./gradlew assembleRelease
+cd android && ./gradlew assembleDebug        # debug-signed, installable
 ```
 
 Because `frontend/vendor/` holds local copies of every library, the app has no
 runtime CDN dependency. The bundled UI only needs a connection for AI replies.
+
+Keep `downloads/` outside `frontend/`. Anything in the web directory is copied
+into the APK, so an APK stored in `frontend/downloads/` puts a copy of itself
+inside itself (13.8 MB of the old 17.6 MB build was exactly that).
+
+### Download APK button
+
+The dashboard header button reads `GET /api/app-release` and never invents a
+destination:
+
+1. `APK_DOWNLOAD_URL` when set on the server (a GitHub release asset, or any
+   stable host) — this is how future releases repoint the button with no
+   frontend change;
+2. otherwise the newest `downloads/*.apk`, validated as a real package: zip
+   container, `AndroidManifest.xml`, `classes*.dex`, and a signature in
+   `META-INF/*` or an `APK Sig Block 42` block;
+3. otherwise `available: false`, and the button explains that no build is
+   published instead of offering a dead link.
+
+The response also carries `size`, `sha256`, `updated_at`, `signed` and
+`installable`, so a broken or unsigned artifact surfaces as a clear message
+rather than a download that Android silently refuses.
+
+### Signing releases
+
+`.github/workflows/android.yml` builds the APK on manual dispatch and publishes
+it as a release asset when a `v*` tag is pushed. Add these repository secrets to
+keep one signing identity across builds:
+
+| Secret | Value |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | `base64 -w0 jeffai-release.jks` |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore password |
+| `ANDROID_KEY_ALIAS` | `jeffai` |
+| `ANDROID_KEY_PASSWORD` | key password |
+
+Without them the workflow falls back to a debug-signed APK. That installs fine,
+but each runner generates a different debug key, so users with an older build
+must uninstall it first. A stored release keystore removes that step for good.
+
+Bump `versionCode` in `android/app/build.gradle` for every published build.
+
+### Logo and icons
+
+The animated brain is `frontend/assets/logo.svg`: pure CSS inside the SVG, no
+libraries, and every animation stops under `prefers-reduced-motion`. It is used
+in the dashboard header, login, signup, the favicon, the web manifest and the
+Android launcher/splash assets.
+
+After editing the SVG, regenerate every raster asset:
+
+```bash
+python tools/make-icons.py
+```
+
+That writes the favicons, apple touch icon, PWA icons, and all Android
+`mipmap-*` launcher icons and `drawable-*/splash.png` files from the single
+source, so the logo can never drift between the web app and the APK.
 
 ---
 
@@ -159,6 +217,7 @@ require `Authorization: Bearer <supabase access token>`.
 | --- | --- | --- |
 | GET | `/api/health`, `/api/status` | Deployment, provider and auth-service status |
 | GET | `/api/config` | The Supabase project the browser must use (URL + public anon key) |
+| GET | `/api/app-release` | Resolved Android download target, size, SHA-256 and signature state |
 | GET | `/api/models` | Model catalogue + tool availability |
 | POST | `/api/chat` | Blocking answer (`message`, `conversation_id`, `model`, `mode`, `regenerate`, `edit_message_id`, `use_memory`) |
 | POST | `/api/chat/stream` | Same input, Server-Sent Events: `meta`, `delta`, `done`, `error` |

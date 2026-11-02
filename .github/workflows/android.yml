@@ -1,0 +1,101 @@
+# Builds the JeffAI Android APK.
+#
+# Manual runs produce a downloadable artifact. Pushing a v* tag also
+# publishes the APK as a GitHub Release asset, which is a stable public
+# URL (APK_DOWNLOAD_URL can point at it) and needs no login to download.
+#
+# Signing: add ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD as repository secrets to keep
+# one stable signing identity across releases. Without them the APK is
+# debug-signed: installable, but the key changes per runner, so installed
+# users must uninstall before updating.
+
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: Copy web build into the Android project
+        run: npx cap sync android
+
+      - name: Configure release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Using the release keystore from secrets."
+            echo "$KEYSTORE_BASE64" | base64 -d > android/app/jeffai-release.jks
+            cat > android/keystore.properties <<EOF
+          storeFile=jeffai-release.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+          else
+            echo "No keystore secret found; the build will be debug-signed."
+          fi
+
+      - name: Build APK
+        run: |
+          if [ -f android/keystore.properties ]; then
+            cd android && ./gradlew assembleRelease --no-daemon
+          else
+            cd android && ./gradlew assembleDebug --no-daemon
+          fi
+
+      - name: Collect and verify the APK
+        run: |
+          set -e
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            SOURCE=android/app/build/outputs/apk/release/app-release.apk
+          else
+            SOURCE=android/app/build/outputs/apk/debug/app-debug.apk
+          fi
+          cp "$SOURCE" JeffAI.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose JeffAI.apk
+          ls -lh JeffAI.apk
+          sha256sum JeffAI.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JeffAI-apk
+          path: JeffAI.apk
+          retention-days: 30
+
+      - name: Publish release asset
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: JeffAI.apk
+          generate_release_notes: true

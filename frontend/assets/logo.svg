@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  JeffAI animated brain mark
+  Created by Amedu Vincent Onjefu (Jeff Bhexus)
+
+  Colours are taken from the app's existing accent gradient:
+  #8b5cf6 -> #6366f1 -> #22d3ee, with #a78bfa as the light accent.
+
+  Animation is pure CSS inside the SVG (no libraries, no filters baked
+  into the geometry) and stops completely when the visitor asks for
+  reduced motion.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="JeffAI brain logo">
+    <title>JeffAI</title>
+
+    <defs>
+        <linearGradient id="brainStroke" x1="6" y1="10" x2="58" y2="54" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#a78bfa"/>
+            <stop offset=".52" stop-color="#6366f1"/>
+            <stop offset="1" stop-color="#22d3ee"/>
+        </linearGradient>
+
+        <linearGradient id="brainFill" x1="10" y1="12" x2="54" y2="52" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#8b5cf6" stop-opacity=".34"/>
+            <stop offset=".55" stop-color="#6366f1" stop-opacity=".24"/>
+            <stop offset="1" stop-color="#22d3ee" stop-opacity=".18"/>
+        </linearGradient>
+
+        <radialGradient id="brainHalo" cx="32" cy="30" r="26" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#8b5cf6" stop-opacity=".32"/>
+            <stop offset=".6" stop-color="#6366f1" stop-opacity=".10"/>
+            <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- One hemisphere, mirrored for the other side. The medial
+             edge is straight so the two halves meet at the midline. -->
+        <g id="hemisphere">
+            <path d="M32 13c-5-4.5-13.5-4.5-17.5.5-3.5 4.5-2.5 8.5-1.5 11-4 3-3.5 8.5 0 11-1.5 4.5 1.5 10 7 11 5.5 1 10-1.5 12-5.5z"
+                  fill="url(#brainFill)" stroke="url(#brainStroke)" stroke-width="2.6"
+                  stroke-linejoin="round"/>
+            <path d="M22.5 17.5c-3 4-1.5 8.5-4 11.5M25.5 30c-3.5 3.5-1.5 8-4.5 11"
+                  fill="none" stroke="#c4b5fd" stroke-opacity=".6" stroke-width="1.8"
+                  stroke-linecap="round"/>
+        </g>
+    </defs>
+
+    <g class="brain">
+        <!-- soft aura -->
+        <circle class="halo" cx="32" cy="31" r="23" fill="url(#brainHalo)"/>
+
+        <g class="lobes">
+            <use href="#hemisphere"/>
+            <use href="#hemisphere" transform="translate(64 0) scale(-1 1)"/>
+
+            <!-- brain stem -->
+            <path d="M32 41v7.5" fill="none" stroke="url(#brainStroke)"
+                  stroke-width="2.6" stroke-linecap="round"/>
+        </g>
+
+        <!-- neural activity: filaments then nodes -->
+        <g class="neural" fill="none" stroke="#22d3ee" stroke-opacity=".85"
+           stroke-width="1.15" stroke-linecap="round">
+            <path class="filament f1" d="M24 23.5 32 19.5l8 4"/>
+            <path class="filament f2" d="M32 19.5V30"/>
+            <path class="filament f3" d="M26.5 34 32 30l5.5 4"/>
+        </g>
+
+        <g class="nodes" fill="#67e8f9">
+            <circle class="node n1" cx="32" cy="19.5" r="2"/>
+            <circle class="node n2" cx="24" cy="23.5" r="1.6"/>
+            <circle class="node n3" cx="40" cy="23.5" r="1.6"/>
+            <circle class="node n4" cx="32" cy="30" r="2"/>
+            <circle class="node n5" cx="26.5" cy="34" r="1.6"/>
+            <circle class="node n6" cx="37.5" cy="34" r="1.6"/>
+        </g>
+    </g>
+
+    <style>
+        .brain {
+            transform-origin: 32px 32px;
+            animation: breathe 4.6s ease-in-out infinite;
+        }
+
+        .halo {
+            transform-origin: 32px 31px;
+            animation: halo 4.6s ease-in-out infinite;
+        }
+
+        .filament {
+            stroke-dasharray: 4 5;
+            animation: flow 2.8s linear infinite;
+        }
+
+        .f2 { animation-delay: .35s; }
+        .f3 { animation-delay: .7s; }
+
+        .node {
+            animation: twinkle 2.8s ease-in-out infinite;
+        }
+
+        .n1 { animation-delay: 0s; }
+        .n2 { animation-delay: .28s; }
+        .n3 { animation-delay: .52s; }
+        .n4 { animation-delay: .76s; }
+        .n5 { animation-delay: 1s; }
+        .n6 { animation-delay: 1.24s; }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.035); }
+        }
+
+        @keyframes halo {
+            0%, 100% { opacity: .55; transform: scale(.96); }
+            50%      { opacity: 1;   transform: scale(1.04); }
+        }
+
+        @keyframes flow {
+            0%   { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -18; }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: .55; }
+            50%      { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .brain, .halo, .filament, .node {
+                animation: none !important;
+            }
+
+            .halo { opacity: .8; }
+            .filament { stroke-dasharray: none; }
+            .node { opacity: .95; }
+        }
+    </style>
+</svg>

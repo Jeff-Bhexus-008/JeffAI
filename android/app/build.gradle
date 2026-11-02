@@ -7,8 +7,8 @@ android {
         applicationId "com.jeffai.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,6 +20,43 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+/*
+ * Optional release signing.
+ *
+ * CI writes android/keystore.properties from repository secrets; when the
+ * file is absent (normal local work, debug builds) nothing here changes
+ * and Gradle keeps using the debug key.
+ *
+ * keystore.properties:
+ *   storeFile=jeffai-release.jks   (relative to this module)
+ *   storePassword=...
+ *   keyAlias=jeffai
+ *   keyPassword=...
+ */
+def jeffaiKeystore = new File(rootProject.projectDir, "keystore.properties")
+
+if (jeffaiKeystore.exists()) {
+    def signingProps = new Properties()
+    jeffaiKeystore.withInputStream { signingProps.load(it) }
+
+    android {
+        signingConfigs {
+            release {
+                storeFile file(signingProps["storeFile"])
+                storePassword signingProps["storePassword"]
+                keyAlias signingProps["keyAlias"]
+                keyPassword signingProps["keyPassword"]
+            }
+        }
+
+        buildTypes {
+            release {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
