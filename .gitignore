@@ -9,3 +9,7 @@ android/.gradle/
 android/build/
 android/app/build/
 jeffai-release.keystore
+
+# test artefacts
+.pytest_cache/
+tests/*.png
